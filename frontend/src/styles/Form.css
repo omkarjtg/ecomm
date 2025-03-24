@@ -1,0 +1,54 @@
+/* Ensure labels are visible in dark mode */
+.form-label {
+  color: var(--para-clr);
+  /* Make sure this is defined in your dark mode theme */
+}
+
+/* Input and Select Fields */
+.form-control,
+.form-select {
+  background-color: var(--card-bg-clr);
+  /* Match dark mode background */
+  color: var(--para-clr);
+  /* Ensure text is visible */
+  border: 1px solid var(--para-clr);
+  /* Ensure border is visible */
+}
+
+/* Placeholder text */
+::placeholder {
+  color: rgb(180, 180, 180);
+  /* Lighter placeholder text for readability */
+}
+
+/* Ensure focus highlights input fields properly */
+.form-control:focus,
+.form-select:focus {
+  border-color: #007bff;
+  background-color: var(--card-bg-clr);
+  color: var(--para-clr);
+}
+
+/* Fix for File Upload Input */
+input[type="file"] {
+  background-color: var(--card-bg-clr);
+  color: var(--para-clr);
+  border: 1px solid var(--para-clr);
+}
+
+/* Fix for Checkbox in Dark Mode */
+.form-check-input {
+  background-color: var(--card-bg-clr);
+  border: 2px solid var(--para-clr);
+}
+
+.form-check-input:checked {
+  background-color: #007bff;
+  /* Blue color for checked state */
+  border-color: #007bff;
+}
+
+.btn-primary {
+  background-color: #c9b92b;
+  color: white;
+}

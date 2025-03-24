@@ -1,0 +1,156 @@
+/* Home.css */
+
+/* Grid Layout */
+.grid {
+    margin-top: 64px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    /* Adjusts dynamically */
+    gap: 24px;
+    padding: 20px;
+    justify-content: center;
+}
+
+/* No Products Message */
+.no-products {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #555;
+    padding: 20px;
+}
+
+/* Card Container */
+.card {
+    width: 100%;
+    max-width: 300px;
+    min-height: 400px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Out of Stock Card */
+.card.out-of-stock {
+    background-color: #f0f0f0;
+    opacity: 0.7;
+}
+
+/* Card Image */
+.card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 12px 12px 0 0;
+    transition: transform 0.3s ease-in-out;
+}
+
+.card:hover img {
+    transform: scale(1.05);
+}
+
+/* Card Content */
+.card-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+}
+
+/* Product Name */
+.card-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+    text-transform: uppercase;
+}
+
+/* Brand Name */
+.card-brand {
+    font-style: italic;
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 10px;
+}
+
+/* Price Section */
+.home-cart-price h5 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ff6600;
+    margin: 10px 0;
+}
+
+/* Action Buttons */
+.card-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+/* Add to Cart Button */
+.btn-hover {
+    flex: 1;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #ff6600;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-hover:hover {
+    background-color: #e65c00;
+    transform: scale(1.05);
+}
+
+.btn-hover:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* View Details Button */
+.view-btn {
+    flex: 1;
+    margin-left: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    text-decoration: none;
+}
+
+.view-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.view-btn:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+    transform: none;
+}   
