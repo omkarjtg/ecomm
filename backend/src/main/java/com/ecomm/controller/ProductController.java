@@ -2,6 +2,7 @@ package com.ecomm.controller;
 
 import com.ecomm.model.Product;
 import com.ecomm.service.ProductService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,12 +14,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins="http://localhost:5173")
 public class ProductController {
 
     @Autowired
     private ProductService productService;
 
+    @GetMapping("hello")
+    public String greet(HttpServletRequest request) {
+        return "Hello World " + request.getSession().getId();
+    }
     @GetMapping("/products")
     public ResponseEntity<List<Product>> getProducts() {
         return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);

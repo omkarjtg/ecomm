@@ -27,7 +27,7 @@
         try {
           const response = await axios.get("http://localhost:8080/api/products");
           setSearchResults(response.data);
-        } catch (error) {
+          } catch (error) {
           console.error("Error fetching data:", error);
         }
       };
