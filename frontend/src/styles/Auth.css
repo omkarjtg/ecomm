@@ -1,0 +1,191 @@
+/* Overlay for Popup */
+.auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent black overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+    /* Optional: adds a slight blur effect to content behind */
+}
+
+/* Container for Auth Forms (Login/Signup) */
+.auth-container {
+    position: relative;
+    max-width: 400px;
+    width: 90%;
+    /* More responsive on small screens */
+    background-color: white;
+    border-radius: 12px;
+    /* Slightly larger radius */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    /* More pronounced shadow */
+    padding: 2rem;
+    z-index: 10001;
+    animation: fadeIn 0.3s ease-out;
+    /* Add fade-in animation */
+}
+
+/* Add fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Form Group */
+.auth-container .form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Labels */
+.auth-container label {
+    display: block;
+    margin-bottom: 0.75rem;
+    /* Slightly more space */
+    color: #2d3748;
+    /* Darker gray for better readability */
+    font-weight: 600;
+    /* Slightly less bold */
+}
+
+/* Input Fields */
+.auth-container .form-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    /* More horizontal padding */
+    border: 1px solid #050505;
+    /* Lighter border */
+    border-radius: 6px;
+    /* Slightly rounded */
+    background-color: rgb(251, 251, 251);
+    color: #333;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-container .form-group input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+    outline: none;
+}
+
+/* Error Messages */
+.auth-container .error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    /* More space above error */
+    display: block;
+}
+
+/* Error Message for Server Errors */
+.auth-container .error-message {
+    color: #dc3545;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 500;
+    padding: 0.75rem;
+    background-color: rgba(220, 53, 69, 0.1);
+    border-radius: 4px;
+}
+
+/* Close Button */
+.auth-container .close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.75rem;
+    color: #718096;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    line-height: 1;
+    padding: 0.25rem;
+}
+
+.auth-container .close-button:hover {
+    color: #dc3545;
+}
+
+/* Submit Button */
+.auth-container .submit-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 0.5rem;
+}
+
+.auth-container .submit-button:hover {
+    background-color: #0b5ed7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-container .submit-button:active {
+    transform: translateY(0);
+}
+
+.auth-container .submit-button:disabled {
+    background-color: #cbd5e0;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Toggle between Login/Signup */
+.auth-toggle {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #4a5568;
+    font-size: 0.95rem;
+}
+
+.auth-toggle button {
+    background: none;
+    border: none;
+    color: #0d6efd;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: inherit;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.auth-toggle button:hover {
+    color: #0b5ed7;
+    text-decoration: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 1.5rem;
+        width: 95%;
+    }
+
+    .auth-container .form-group input {
+        padding: 0.65rem 0.9rem;
+    }
+}

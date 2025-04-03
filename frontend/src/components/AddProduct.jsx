@@ -151,7 +151,7 @@ const AddProduct = () => {
 
         {/* Release Date */}
         <div className="col-md-6">
-          <label className="form-label"><h6>Release Date</h6></label>
+          <label className="form-label"><h6>Release Date</h6></label> <br />
           <DatePicker
             selected={product.releaseDate}
             onChange={handleDateChange}

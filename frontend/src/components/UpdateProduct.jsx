@@ -3,8 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import "../styles/Form.css"; 
-  
+import "../styles/Form.css";
 
 const UpdateProduct = () => {
   const { id } = useParams();
@@ -17,10 +16,14 @@ const UpdateProduct = () => {
     brand: "",
     price: "",
     category: "",
-    releaseDate: null, // Initialize as null for DatePicker
+    releaseDate: null,
     productAvailable: false,
     stockQuantity: "",
   });
+
+  const converUrlToFile = async (blobData, fileName) => {
+    return new File([blobData], fileName, { type: blobData.type });
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -41,7 +44,6 @@ const UpdateProduct = () => {
         );
         setImage(imageFile);
 
-        // Set the product data, including converting releaseDate to a Date object
         setUpdateProduct({
           ...response.data,
           releaseDate: response.data.releaseDate
@@ -55,11 +57,6 @@ const UpdateProduct = () => {
 
     fetchProduct();
   }, [id]);
-
-  const converUrlToFile = async (blobData, fileName) => {
-    const file = new File([blobData], fileName, { type: blobData.type });
-    return file;
-  };
 
   const submitHandler = async (event) => {
     event.preventDefault();
@@ -79,9 +76,7 @@ const UpdateProduct = () => {
         `http://localhost:8080/api/product/${id}`,
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
@@ -95,10 +90,7 @@ const UpdateProduct = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUpdateProduct({
-      ...updateProduct,
-      [name]: value,
-    });
+    setUpdateProduct((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
@@ -107,154 +99,145 @@ const UpdateProduct = () => {
 
   return (
     <div className="update-product-container">
-      <div className="center-container" style={{ marginTop: "7rem" }}>
+      <div className="center-container">
         <h1>Update Product</h1>
         <form className="row g-3 pt-1" onSubmit={submitHandler}>
           <div className="col-md-6">
-            <label className="form-label">
-              <h6>Name</h6>
-            </label>
+            <label className="form-label"><h6>Name</h6></label>
             <input
               type="text"
               className="form-control"
-              placeholder={product.name}
+              placeholder={product.name || "Enter name"}
               value={updateProduct.name}
               onChange={handleChange}
               name="name"
             />
           </div>
+
           <div className="col-md-6">
-            <label className="form-label">
-              <h6>Brand</h6>
-            </label>
+            <label className="form-label"><h6>Brand</h6></label>
             <input
               type="text"
               name="brand"
               className="form-control"
-              placeholder={product.brand}
+              placeholder={product.brand || "Enter brand"}
               value={updateProduct.brand}
               onChange={handleChange}
-              id="brand"
             />
           </div>
+
           <div className="col-12">
-            <label className="form-label">
-              <h6>Description</h6>
-            </label>
+            <label className="form-label"><h6>Description</h6></label>
             <input
               type="text"
               className="form-control"
-              placeholder={product.description}
+              placeholder={product.description || "Enter description"}
               name="description"
               onChange={handleChange}
               value={updateProduct.description}
-              id="description"
             />
           </div>
+
           <div className="col-5">
-            <label className="form-label">
-              <h6>Price</h6>
-            </label>
+            <label className="form-label"><h6>Price</h6></label>
             <input
               type="number"
               className="form-control"
               onChange={handleChange}
               value={updateProduct.price}
-              placeholder={product.price}
+              placeholder={product.price || "Enter price"}
               name="price"
-              id="price"
             />
           </div>
+
           <div className="col-md-6">
-            <label className="form-label">
-              <h6>Category</h6>
-            </label>
+            <label className="form-label"><h6>Category</h6></label>
             <select
               className="form-select"
               value={updateProduct.category}
               onChange={handleChange}
               name="category"
-              id="category"
             >
               <option value="">Select category</option>
-              <option value="Laptops">Laptops</option>
-              <option value="Headphones">Headphones</option>
-              <option value="Mobiles">Mobiles</option>
-              <option value="Television">Television</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Toys">Toys</option>
-              <option value="Clothing">Clothing</option>
-              <option value="Healthcare and Cosmetics">
-                Healthcare and Cosmetics
-              </option>
+              {[
+                "Laptops",
+                "Headphones",
+                "Mobiles",
+                "Television",
+                "Electronics",
+                "Toys",
+                "Clothing",
+                "Healthcare and Cosmetics",
+              ].map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
             </select>
           </div>
 
           <div className="col-md-4">
-            <label className="form-label">
-              <h6>Stock Quantity</h6>
-            </label>
+            <label className="form-label"><h6>Stock Quantity</h6></label>
             <input
               type="number"
               className="form-control"
               onChange={handleChange}
-              placeholder={product.stockQuantity}
+              placeholder={product.stockQuantity || "Enter stock quantity"}
               value={updateProduct.stockQuantity}
               name="stockQuantity"
-              id="stockQuantity"
             />
           </div>
+
           <div className="col-md-6">
-            <label className="form-label">
-              <h6>Release Date</h6>
-            </label>
+            <label className="form-label"><h6>Release Date</h6></label> <br />
             <DatePicker
               selected={updateProduct.releaseDate}
               onChange={(date) =>
-                setUpdateProduct({ ...updateProduct, releaseDate: date })
+                setUpdateProduct((prev) => ({ ...prev, releaseDate: date }))
               }
               dateFormat="dd/MM/yyyy"
               placeholderText="dd/mm/yyyy"
               className="form-control"
             />
           </div>
+
           <div className="col-md-8">
-            <label className="form-label">
-              <h6>Image</h6>
-            </label>
-            <img
-              src={image ? URL.createObjectURL(image) : "Image unavailable"}
-              alt={product.imageName}
-              style={{
-                width: "100%",
-                height: "180px",
-                objectFit: "cover",
-                padding: "5px",
-                margin: "0",
-              }}
-            />
+            <label className="form-label"><h6>Image</h6></label>
+            {image ? (
+              <img
+                src={URL.createObjectURL(image)}
+                alt="Product"
+                style={{
+                  width: "100%",
+                  height: "180px",
+                  objectFit: "cover",
+                  padding: "5px",
+                  margin: "0",
+                }}
+              />
+            ) : (
+              <p>No image available</p>
+            )}
             <input
               className="form-control"
               type="file"
               onChange={handleImageChange}
-              placeholder="Upload image"
               name="imageUrl"
-              id="imageUrl"
             />
           </div>
+
           <div className="col-12">
             <div className="form-check">
               <input
                 className="form-check-input"
                 type="checkbox"
                 name="productAvailable"
-                id="gridCheck"
                 checked={updateProduct.productAvailable}
                 onChange={(e) =>
-                  setUpdateProduct({
-                    ...updateProduct,
+                  setUpdateProduct((prev) => ({
+                    ...prev,
                     productAvailable: e.target.checked,
-                  })
+                  }))
                 }
               />
               <label className="form-check-label">Product Available</label>
@@ -263,7 +246,7 @@ const UpdateProduct = () => {
 
           <div className="col-12">
             <button type="submit" className="btn btn-primary">
-              Submit
+              Update Product
             </button>
           </div>
         </form>

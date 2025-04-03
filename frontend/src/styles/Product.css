@@ -1,198 +1,206 @@
-    /* Product Container */
+/* Product Container */
+.containers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 20px;
+    max-width: 900px;
+    margin: 20px auto;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    align-items: center;
+    border: 1px solid #e0e0e0;
+}
+
+/* Left Column (Product Image) */
+.left-column-img {
+    background-color: #f8f9fa;
+    width: 100%;
+    max-width: 350px;
+    padding: 30px;
+    height: auto;
+    border-radius: 8px;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+}
+
+.left-column-img:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Right Column (Product Details) */
+.right-column {
+    flex: 1;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Category & Release Date */
+.product-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    font-weight: lighter;
+    color: #6c757d;
+    margin-bottom: 0.75rem;
+}
+
+/* Product Title */
+.product-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
+    color: #333;
+}
+
+/* Brand Name */
+.product-brand {
+    font-style: italic;
+    color: #6c757d;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Product Description */
+.product-description-title {
+    font-weight: bold;
+    font-size: 1rem;
+    margin-top: 8px;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.product-description {
+    font-size: 0.9rem;
+    color: #495057;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+/* Product Price */
+.product-price {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #0d6efd;
+    margin-bottom: 1rem;
+}
+
+h6,
+label {
+    color: #495057 !important;
+    font-size: 0.9rem;
+}
+
+/* Stock Info */
+.stock-info {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+/* Buttons Container */
+.button-group {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+/* General Button Styling */
+.btn-primary,
+.btn-warning,
+.btn-danger {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Add to Cart Button */
+.btn-primary {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Delete Button */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Disabled Button */
+.disabled-btn {
+    background-color: #6c757d !important;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
     .containers {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        padding: 40px;
-        max-width: 1200px;
-        margin: auto;
-        background-color: var(--card-bg-clr);
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        /* Stronger shadow */
-        align-items: center;
-    }
-
-
-
-    /* Left Column (Product Image) */
-    .left-column-img {
-        background-color: #ffffff;
-        /* Slightly lighter than containers */
-        width: 100%;
-        max-width: 450px;
-        padding: 50px;
-        height: auto;
-        border-radius: 10px;
-        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-   
-
-    .left-column-img:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Right Column (Product Details) */
-    .right-column {
-        flex: 1;
-        padding: 20px;
-        display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        text-align: center;
+        padding: 15px;
+        margin: 10px;
     }
 
-    /* Category & Release Date */
-    .product-meta {
-        display: flex;
-        justify-content: space-between;
-        font-size: 1rem;
-        font-weight: lighter;
-        color: var(--para-clr);
-        margin-bottom: 1rem;
+    .left-column-img {
+        width: 100%;
+        max-width: 300px;
+        padding: 20px;
     }
 
-    /* Product Title */
-    .product-title {
-        font-size: 2.5rem;
-        font-weight: bold;
-        /* text-transform: capitalize; */
-        letter-spacing: 1px;
-        margin-bottom: 0.5rem;
-        color: var(--para-clr);
+    .right-column {
+        width: 100%;
+        padding: 10px;
     }
 
-    /* Brand Name */
-    .product-brand {
-        font-style: italic;
-        color: var(--para-clr);
-        font-size: 1.2rem;
-        margin-bottom: 1rem;
-    }
-
-    /* Product Description */
-    .product-description-title {
-        font-weight: bold;
-        font-size: 1.2rem;
-        margin-top: 10px;
-        color: var(--para-clr);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .product-description {
-        font-size: 1rem;
-        color: var(--para-clr);
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
-    }
-
-    /* Product Price */
-    .product-price {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #ff6600;
-        margin-bottom: 1.5rem;
-    }
-
-    h6,
-    label {
-        color: var(--para-clr) !important;
-    }
-
-
-    .stock-info {
-        font-size: 1rem;
-        font-weight: bold;
-        color: var(--para-clr);
-        /* Uses dynamic text color */
-    }
-
-
-    /* Dark Mode Styling */
-    body.dark-mode .stock-info {
-        color: #00ff00;
-        /* Bright green for dark mode */
-    }
-
-    /* Buttons Container */
     .button-group {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1.5rem;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
     }
 
-    /* General Button Styling */
     .btn-primary,
     .btn-warning,
     .btn-danger {
-        padding: 1rem 2rem;
-        font-size: 1rem;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
-        font-weight: bold;
-        text-transform: uppercase;
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+        flex: 1 1 120px;
     }
-
-    /* Add to Cart Button */
-    .btn-primary {
-        background-color: #c9b92b;
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background-color: #0056b3;
-        transform: scale(1.05);
-    }
-
-    .btn-warning {
-        background-color: #00a6bb;
-        color: white;
-    }
-
-    .btn-warning:hover {
-        background-color: #0056b3;
-        transform: scale(1.05);
-    }
-
-    /* Delete Button */
-    .btn-danger {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .btn-danger:hover {
-        background-color: #b02a37;
-        transform: scale(1.05);
-    }
-
-    /* Disabled Button */
-    .disabled-btn {
-        background-color: #aaa !important;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .containers {
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .left-column-img {
-            width: 100%;
-        }
-
-        .right-column {
-            width: 100%;
-        }
-
-        .button-group {
-            justify-content: center;
-        }
-    }
+}
