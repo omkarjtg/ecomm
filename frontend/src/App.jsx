@@ -5,13 +5,15 @@ import Navbar from "./components/Navbar";
 import Cart from "./components/Cart";
 import AddProduct from "./components/AddProduct";
 import Product from "./components/Product";
+import { ToastContainer } from "react-toastify";
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AppProvider } from "./Context/Context";
+import { AppProvider } from "./context/Context";
 import UpdateProduct from "./components/UpdateProduct";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import LoginForm from "./components/Login"; 
-import RegisterForm from "./components/Signup"; 
+import LoginForm from "./components/Login";
+import RegisterForm from "./components/SignUp";
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -41,16 +43,18 @@ function App() {
     <AppProvider>
       <BrowserRouter>
         <Navbar onSelectCategory={handleCategorySelect} />
+        <ToastContainer autoClose={1000} />
         <Routes>
           <Route
             path="/"
             element={
-              <Home 
-                addToCart={addToCart} 
+              <Home
+                addToCart={addToCart}
                 selectedCategory={selectedCategory}
               />
             }
           />
+
           <Route path="/add_product" element={<AddProduct />} />
           <Route path="/product" element={<Product />} />
           <Route path="/product/:id" element={<Product />} />
@@ -58,7 +62,8 @@ function App() {
           <Route path="/product/update/:id" element={<UpdateProduct />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/signup" element={<RegisterForm />} />
-        </Routes> 
+          <Route path="/signup" element={<RegisterForm />} />
+        </Routes>
       </BrowserRouter>
     </AppProvider>
   );

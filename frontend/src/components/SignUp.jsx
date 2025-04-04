@@ -4,37 +4,49 @@ import * as Yup from "yup";
 import axios from "axios";
 import "../styles/Auth.css";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const LoginForm = () => {
+const SignupForm = () => {
     const navigate = useNavigate();
-    const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
 
     const initialValues = {
-        identifier: "",
+        name: "",
+        email: "",
         password: "",
     };
 
     const validationSchema = Yup.object({
-        identifier: Yup.string().required("Username or email is required"),
+        name: Yup.string().max(50, "Name must be 50 characters or less").required("Name is required"),
+        email: Yup.string().email("Invalid email address").required("Email is required"),
         password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
     });
 
     const handleSubmit = async (values, { setSubmitting, setStatus }) => {
         try {
-            const response = await axios.post("http://localhost:8080/login", values);
-            login(response.data);
-            navigate("/", { state: { message: "Login successful!" } });
-            toast.success("Login successful!");
+            // Register user
+            await axios.post("http://localhost:8080/register", values);
+
+            // Auto-login after successful registration
+            const loginResponse = await axios.post("http://localhost:8080/login", {
+                identifier: values.email,
+                password: values.password,
+            });
+
+            // Store login and redirect
+            login(loginResponse.data); // assuming you have `useAuth()` and `login()` here
+            navigate("/", { state: { message: "Signup successful! You are now logged in." } });
+            toast.success("Sign up successful, Welcome!");
+
         } catch (error) {
-            setStatus({ error: error.response?.data?.message || "Login failed. Please try again." });
+            setStatus({ error: error.response?.data?.message || "Signup/login failed. Please try again." });
+            console.error("Signup/Login error:", error);
         } finally {
             setSubmitting(false);
         }
     };
+
 
     const handleClose = () => navigate("/");
 
@@ -42,16 +54,22 @@ const LoginForm = () => {
         <div className="auth-overlay">
             <div className="auth-container">
                 <button className="close-button" onClick={handleClose}>×</button>
-                <h2>Login</h2>
+                <h2>Sign Up</h2>
                 <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
                     {({ isSubmitting, status }) => (
                         <Form>
                             {status?.error && <div className="error-message">{status.error}</div>}
 
                             <div className="form-group">
-                                <label htmlFor="identifier">Username or Email:</label>
-                                <Field type="text" name="identifier" id="identifier" />
-                                <ErrorMessage name="identifier" component="div" className="error" />
+                                <label htmlFor="name">Name:</label>
+                                <Field type="text" name="name" id="name" />
+                                <ErrorMessage name="name" component="div" className="error" />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="email">Email:</label>
+                                <Field type="email" name="email" id="email" />
+                                <ErrorMessage name="email" component="div" className="error" />
                             </div>
 
                             <div className="form-group">
@@ -71,13 +89,13 @@ const LoginForm = () => {
                             </div>
 
                             <button type="submit" className="submit-button" disabled={isSubmitting}>
-                                {isSubmitting ? "Logging in..." : "Login"}
+                                {isSubmitting ? "Signing up..." : "Sign Up"}
                             </button>
 
                             <div className="auth-switch">
-                                Not registered?{" "}
-                                <button type="button" className="switch-button" onClick={() => navigate("/signup")}>
-                                    Sign up
+                                Already registered?{" "}
+                                <button type="button" className="switch-button" onClick={() => navigate("/login")}>
+                                    Log in
                                 </button>
                             </div>
                         </Form>
@@ -88,4 +106,4 @@ const LoginForm = () => {
     );
 };
 
-export default LoginForm;
+export default SignupForm;

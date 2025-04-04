@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import "../styles/Form.css"; 
+import "../styles/Form.css";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddProduct = () => {
   const [product, setProduct] = useState({
@@ -33,7 +35,7 @@ const AddProduct = () => {
   const submitHandler = async (event) => {
     event.preventDefault();
 
-    // Format the release date to "yyyy-MM-dd"
+    // Format release date properly
     const formattedDate = product.releaseDate
       ? product.releaseDate.toISOString().split("T")[0]
       : "";
@@ -51,17 +53,39 @@ const AddProduct = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:8080/api/product", formData);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found, user might be logged out.");
+        toast.error("Authentication error. Please log in.");
+        return;
+      }
+
+      console.log("Using token for API request:", token); // Debugging
+
+      const response = await axios.post(
+        "http://localhost:8080/api/product",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`
+          },
+        }
+      );
+
       console.log("Product added successfully:", response.data);
-      alert("Product added successfully");
+      toast.success("Product added successfully!");
+      // Redirect or navigate if needed
     } catch (error) {
       console.error("Error adding product:", error);
-      alert("Error adding product");
+      toast.error("Error adding product");
     }
   };
 
+
   return (
     <div className="container">
+      <h1>Add Product</h1>
       <form className="row g-3 pt-5" onSubmit={submitHandler}>
         {/* Product Name */}
         <div className="col-md-6">
@@ -92,15 +116,16 @@ const AddProduct = () => {
         {/* Description */}
         <div className="col-12">
           <label className="form-label"><h6>Description</h6></label>
-          <input
-            type="text"
+          <textarea
             className="form-control"
             placeholder="Add product description"
             value={product.description}
             name="description"
             onChange={handleInputChange}
+            rows="4"  // Adjust the number of visible rows
           />
         </div>
+
 
         {/* Price */}
         <div className="col-md-6">

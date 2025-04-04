@@ -100,9 +100,7 @@
 
 .list-group-item:hover {
     background-color: gray !important;
-    /* Highlight item on hover */
     color: black !important;
-    /* Change text color on hover */
 }
 
 
@@ -136,7 +134,6 @@
     cursor: pointer;
     text-align: center;
     color: white;
-    /* Use --para-clr value */
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -148,10 +145,11 @@
 }
 
 .user-icon {
+    color: #cccccc;
     transition: color 0.3s ease-in-out;
 }
 
 .user-icon:hover {
-    color: #cccccc;
+    color: #6b6a6a;
     /* Lighter gray for hover, more subtle in dark theme */
 }

@@ -22,17 +22,14 @@ public class MyUserDetailsService implements UserDetailsService {
         User user = userRepo.findByUsername(identifier);
 
         if (user == null) {
-            user = userRepo.findByEmail(identifier); // Try searching by email
+            user = userRepo.findByEmail(identifier);
         }
 
         if (user == null) {
             throw new UsernameNotFoundException("User not found with username or email: " + identifier);
         }
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(), // Spring Security requires a unique identifier, use email
-                user.getPassword(),
-                new ArrayList<>()
-        );
+        return new UserPrincipal(user); // ✅ Return UserPrincipal, not Spring Security's User
     }
+
 }

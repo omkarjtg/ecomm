@@ -132,13 +132,14 @@
     transform: none;
 }
 
+
 /* View Details Button */
-.view-btn {
+/* .view-btn {
     flex: 1;
     margin-left: 10px;
     padding: 10px 14px;
     border-radius: 6px;
-    background-color: #6c757d; /* Bootstrap secondary color */
+    background-color: #6c757d;
     color: white;
     font-weight: bold;
     font-size: 1rem;
@@ -148,7 +149,7 @@
 }
 
 .view-btn:hover {
-    background-color: #5c636a; /* Darker gray on hover */
+    background-color: #5c636a; 
     transform: scale(1.05);
 }
 
@@ -156,14 +157,15 @@
     background-color: #aaa;
     cursor: not-allowed;
     transform: none;
-}
+} */
 
 /* Out of Stock Badge */
 .out-of-stock-badge {
     position: absolute;
     top: 10px;
     right: 10px;
-    background-color: #dc3545; /* Bootstrap danger color */
+    background-color: #dc3545; 
+    background-color: #d55360; 
     color: white;
     padding: 5px 10px;
     border-radius: 4px;

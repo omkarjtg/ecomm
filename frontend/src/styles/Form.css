@@ -43,11 +43,13 @@ input[type="file"],
 input[type="text"],
 input[type="number"],
 input[type="checkbox"],
-select.form-select {
+select.form-select,
+textarea.form-control  {
   background-color: #ffffff;
   color: #000000;
   border: 1px groove #6f6f6f;
 }
+
 
 /* Checkbox */
 .form-check-input {
@@ -97,6 +99,7 @@ select.form-select {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+
   .container,
   .center-container {
     padding: 15px;

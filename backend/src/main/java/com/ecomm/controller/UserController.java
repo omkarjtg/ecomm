@@ -2,6 +2,7 @@ package com.ecomm.controller;
 
 import com.ecomm.dto.LoginRequest;
 import com.ecomm.dto.RegisterRequest;
+import com.ecomm.model.Role;
 import com.ecomm.model.User;
 import com.ecomm.service.JwtService;
 import com.ecomm.service.UserService;
@@ -13,6 +14,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 @RestController
 public class UserController {
@@ -47,7 +50,8 @@ public class UserController {
         user.setUsername(registerRequest.getName()); // Use name as username
         user.setEmail(registerRequest.getEmail());
         user.setPassword(registerRequest.getPassword());
-        user.setRole("USER");
+        user.setRoles(registerRequest.getRoles());
+
 
         // Save user with encoded password
         String plaintextPassword = user.getPassword();

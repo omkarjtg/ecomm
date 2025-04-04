@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
-import AppContext from "../Context/Context";
+import AppContext from "../context/Context";
 import axios from "../axios";
 import "../styles/Product.css"; // Import the new CSS file
 
@@ -39,6 +39,9 @@ const Product = () => {
   }, [id]);
 
   const deleteProduct = async () => {
+    const confirmed = window.confirm("Are you sure you want to delete this product? This action cannot be undone.");
+    if (!confirmed) return;
+
     try {
       await axios.delete(`http://localhost:8080/api/product/${id}`);
       removeFromCart(id);
@@ -47,9 +50,10 @@ const Product = () => {
       navigate("/");
     } catch (error) {
       console.error("Error deleting product:", error);
+      alert("Failed to delete product. Please try again.");
     }
   };
-
+  
   const handleEditClick = () => {
     navigate(`/product/update/${id}`);
   };
@@ -87,7 +91,7 @@ const Product = () => {
 
         <h6>
           Stock Available: <span className="stock-info">{product.stockQuantity}</span>
-        </h6> 
+        </h6>
 
         {/* Action Buttons */}
         <div className="button-group">

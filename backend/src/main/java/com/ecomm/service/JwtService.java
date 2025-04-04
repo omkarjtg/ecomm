@@ -1,5 +1,6 @@
 package com.ecomm.service;
 
+import com.ecomm.model.Role;
 import com.ecomm.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -8,9 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
@@ -22,11 +22,12 @@ public class JwtService {
 
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", user.getRole());
+
+            claims.put("role", user.getRoles().name());
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(user.getEmail()) // FIXED: Using email instead of role
+                .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15 min expiry
                 .signWith(getKey(), SignatureAlgorithm.HS256)
@@ -35,6 +36,33 @@ public class JwtService {
 
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public String extractUserName(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+
+        // Try fetching "role" instead of "roles"
+        String role = claims.get("role", String.class);
+
+        if (role == null) {
+            System.out.println("No roles found in JWT");
+            return Collections.emptyList();
+        }
+
+        return List.of(role); // Convert single role to a list
+    }
+
+
+
+    public Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public boolean validateToken(String token, User user) {
@@ -61,4 +89,6 @@ public class JwtService {
         }
         return key;
     }
+
+
 }

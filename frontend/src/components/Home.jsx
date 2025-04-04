@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import AppContext from "../Context/Context";
+import AppContext from "../context/Context";
 import unplugged from "../assets/unplugged.png";
-import "../styles/Home.css"; // Import the improved CSS file
+import "../styles/Home.css";
 
 const Home = ({ selectedCategory }) => {
   const { data, isError, addToCart, refreshData } = useContext(AppContext);
@@ -72,11 +72,12 @@ const Home = ({ selectedCategory }) => {
             product;
 
           return (
-            <div
-              className={`card ${!productAvailable ? "out-of-stock" : ""}`}
-              key={id}
-            >
-              <Link to={`/product/${id}`} style={{ textDecoration: "none", color: "inherit" }}>
+            <Link to={`/product/${id}`} style={{ textDecoration: "none", color: "inherit" }}>
+              <div
+                className={`card ${!productAvailable ? "out-of-stock" : ""}`}
+                key={id}
+              >
+
                 <img src={imageUrl} alt={name} />
                 <div className="card-body">
                   <div>
@@ -90,19 +91,20 @@ const Home = ({ selectedCategory }) => {
                       {price}
                     </h5>
                   </div>
-                  <button
+                  {/* <button
                     className="btn-hover"
                     onClick={(e) => {
                       e.preventDefault();
                       addToCart(product);
                     }}
-                    disabled={!productAvailable}    
+                    disabled={!productAvailable}
                   >
                     {productAvailable ? "Add to Cart" : "Out of Stock"}
-                  </button>
+                  </button> */}
                 </div>
-              </Link>
-            </div>
+
+              </div>
+            </Link>
           );
         })
       )}

@@ -4,8 +4,15 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/Form.css";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
+
 
 const UpdateProduct = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [product, setProduct] = useState({});
   const [image, setImage] = useState(null);
@@ -81,16 +88,19 @@ const UpdateProduct = () => {
       );
 
       console.log("Product updated successfully:", response.data);
-      alert("Product updated successfully!");
+
+      toast.success("Product updated successfully!");
+      navigate(`/product/${id}`);
     } catch (error) {
       console.error("Error updating product:", error);
-      alert("Failed to update product. Please try again.");
+      toast.error("Failed to update product. Please try again.");
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUpdateProduct((prev) => ({ ...prev, [name]: value }));
+
   };
 
   const handleImageChange = (e) => {
@@ -128,7 +138,7 @@ const UpdateProduct = () => {
 
           <div className="col-12">
             <label className="form-label"><h6>Description</h6></label>
-            <input
+            <textarea
               type="text"
               className="form-control"
               placeholder={product.description || "Enter description"}
