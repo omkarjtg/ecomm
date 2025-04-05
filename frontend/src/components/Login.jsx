@@ -3,13 +3,15 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import "../styles/Auth.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const LoginForm = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const from = location.state?.from || "/";
     const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -27,7 +29,7 @@ const LoginForm = () => {
         try {
             const response = await axios.post("http://localhost:8080/login", values);
             login(response.data);
-            navigate("/", { state: { message: "Login successful!" } });
+            navigate(from, { state: { message: "Login successful!" } });
             toast.success("Login successful!");
         } catch (error) {
             setStatus({ error: error.response?.data?.message || "Login failed. Please try again." });

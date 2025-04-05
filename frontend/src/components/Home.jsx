@@ -72,12 +72,14 @@ const Home = ({ selectedCategory }) => {
             product;
 
           return (
-            <Link to={`/product/${id}`} style={{ textDecoration: "none", color: "inherit" }}>
+            <Link 
+              to={`/product/${id}`} 
+              style={{ textDecoration: "none", color: "inherit" }}
+              key={id}
+            >
               <div
                 className={`card ${!productAvailable ? "out-of-stock" : ""}`}
-                key={id}
               >
-
                 <img src={imageUrl} alt={name} />
                 <div className="card-body">
                   <div>
@@ -91,18 +93,7 @@ const Home = ({ selectedCategory }) => {
                       {price}
                     </h5>
                   </div>
-                  {/* <button
-                    className="btn-hover"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      addToCart(product);
-                    }}
-                    disabled={!productAvailable}
-                  >
-                    {productAvailable ? "Add to Cart" : "Out of Stock"}
-                  </button> */}
                 </div>
-
               </div>
             </Link>
           );

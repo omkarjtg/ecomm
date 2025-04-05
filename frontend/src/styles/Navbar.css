@@ -39,6 +39,19 @@
     text-transform: none;
 }
 
+.navbar .navbar-toggler {
+    /* display: block !important;  Ensures visibility */
+    /* border: 1px solid rgb(33, 30, 30) !important;  Makes it stand out */
+    background-color: rgba(172, 165, 165, 0.2) !important;  /* Light background */
+    padding: 8px 12px;
+  }
+  
+  .navbar .navbar-toggler-icon {
+    background-color: rgb(103, 101, 101) !important;  
+    border-radius: 5px;
+  }
+  
+
 /* Search Result Items */
 .search-dropdown .list-group-item {
     padding: 10px;

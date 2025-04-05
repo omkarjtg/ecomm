@@ -14,6 +14,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import LoginForm from "./components/Login";
 import RegisterForm from "./components/SignUp";
+import Profile from "./components/Profile";
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -62,7 +63,7 @@ function App() {
           <Route path="/product/update/:id" element={<UpdateProduct />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/signup" element={<RegisterForm />} />
-          <Route path="/signup" element={<RegisterForm />} />
+          <Route path="/profile" element={<Profile   />} />
         </Routes>
       </BrowserRouter>
     </AppProvider>

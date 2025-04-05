@@ -1,6 +1,7 @@
 package com.ecomm.controller;
 
 import com.ecomm.dto.LoginRequest;
+import com.ecomm.dto.ProfileDTO;
 import com.ecomm.dto.RegisterRequest;
 import com.ecomm.model.Role;
 import com.ecomm.model.User;
@@ -13,9 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Set;
 
 @RestController
 public class UserController {
@@ -28,6 +31,21 @@ public class UserController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @GetMapping("/profile")
+    public ResponseEntity<ProfileDTO> getProfile(Authentication authentication) {
+        String currentUsername = authentication.getName();
+        User user = userService.findByUsernameOrEmail(currentUsername);
+
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        ProfileDTO profile = new ProfileDTO(user);
+        return ResponseEntity.ok(profile);
+    }
+
+
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest registerRequest) {
@@ -50,8 +68,7 @@ public class UserController {
         user.setUsername(registerRequest.getName()); // Use name as username
         user.setEmail(registerRequest.getEmail());
         user.setPassword(registerRequest.getPassword());
-        user.setRoles(registerRequest.getRoles());
-
+        user.setRoles(Role.USER);
 
         // Save user with encoded password
         String plaintextPassword = user.getPassword();

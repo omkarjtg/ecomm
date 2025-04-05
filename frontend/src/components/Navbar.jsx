@@ -1,10 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/Navbar.css";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Navbar = ({ onSelectCategory }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [input, setInput] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [noResults, setNoResults] = useState(false);
@@ -12,8 +15,8 @@ const Navbar = ({ onSelectCategory }) => {
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef(null);
-
-    const { isLoggedIn, logout } = useAuth(); // 👈 NEW
+    const from = location.state?.from || "/";
+    const { isLoggedIn, logout } = useAuth();
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -26,8 +29,9 @@ const Navbar = ({ onSelectCategory }) => {
     }, []);
 
     const handleLogout = () => {
-        logout(); // 👈 NEW - updates context + localStorage
-        navigate("/login");
+        logout();
+        toast.info("Logged out succesfully");
+        navigate("/");
     };
 
     const handleChange = async (value) => {
@@ -100,7 +104,7 @@ const Navbar = ({ onSelectCategory }) => {
                     </button>
 
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                             <li className="nav-item">
                                 <a className="nav-link active" href="/">Home</a>
                             </li>
@@ -184,7 +188,10 @@ const Navbar = ({ onSelectCategory }) => {
                                 </div>
                             ) : (
                                 <>
-                                    <button className="btn btn-primary mx-2" onClick={() => navigate("/login")}>
+                                    <button
+                                        className="btn btn-primary mx-2"
+                                        onClick={() => navigate("/login", { state: { from: location.pathname } })}
+                                    >
                                         Login
                                     </button>
                                     <button className="btn btn-success" onClick={() => navigate("/signup")}>

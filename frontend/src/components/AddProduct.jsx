@@ -3,10 +3,12 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/Form.css";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const AddProduct = () => {
+  const navigate = useNavigate();
   const [product, setProduct] = useState({
     name: "",
     brand: "",
@@ -68,14 +70,15 @@ const AddProduct = () => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`  
           },
         }
       );
+      const productId = response.data.id;
 
       console.log("Product added successfully:", response.data);
       toast.success("Product added successfully!");
-      // Redirect or navigate if needed
+      navigate(`/product/${productId}`)
     } catch (error) {
       console.error("Error adding product:", error);
       toast.error("Error adding product");

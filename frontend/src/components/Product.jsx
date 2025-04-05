@@ -2,7 +2,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import AppContext from "../context/Context";
 import axios from "../axios";
-import "../styles/Product.css"; // Import the new CSS file
+import "../styles/Product.css";
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const Product = () => {
   const { id } = useParams();
@@ -39,28 +43,38 @@ const Product = () => {
   }, [id]);
 
   const deleteProduct = async () => {
-    const confirmed = window.confirm("Are you sure you want to delete this product? This action cannot be undone.");
-    if (!confirmed) return;
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
 
-    try {
-      await axios.delete(`http://localhost:8080/api/product/${id}`);
-      removeFromCart(id);
-      alert("Product deleted successfully");
-      refreshData();
-      navigate("/");
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      alert("Failed to delete product. Please try again.");
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`http://localhost:8080/api/product/${id}`);
+        removeFromCart(id);
+        toast.info("Product deleted succesfully");
+        refreshData();
+        navigate("/");
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        Swal.fire("Error!", "Something went wrong while deleting.", "error");
+      }
     }
   };
-  
+
+
   const handleEditClick = () => {
     navigate(`/product/update/${id}`);
   };
 
   const handleAddToCart = () => {
     addToCart(product);
-    alert("Product added to cart");
+    toast("Added to Cart!");
   };
 
   if (!product) {
