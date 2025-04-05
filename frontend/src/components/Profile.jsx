@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import axios from "../axios";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { Card, Button, Badge, Spinner } from "react-bootstrap"; // Added Bootstrap components
 
 const Profile = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, isAdmin } = useAuth(); // Destructured isAdmin properly
     const [profile, setProfile] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     // Debug user state
@@ -16,6 +18,7 @@ const Profile = () => {
         console.log("useEffect triggered, user:", user);
 
         const fetchProfile = async () => {
+            setIsLoading(true);
             try {
                 console.log("Fetching profile...");
                 const response = await axios.get(`/profile`);
@@ -24,6 +27,8 @@ const Profile = () => {
             } catch (error) {
                 console.error("Error fetching profile:", error);
                 toast.error("Failed to fetch profile.");
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -35,22 +40,80 @@ const Profile = () => {
         }
     }, [user]);
 
-    return (
-        <div className="container mt-5">
-            <h2 className="text-center">Profile</h2>
+    const handleLogout = () => {
+        logout();
+        toast.success("Logged out successfully!");
+        navigate("/login");
+    };
 
-            {profile ? (
-                <div className="profile-card">
-                    <h4>{profile.username}</h4>
-                    <p>Email: {profile.email}</p>
-                    <button className="btn btn-danger mt-3" onClick={logout}>
-                        Logout
-                    </button>
+    return (
+        <div className="container mt-5 mb-5">
+            <h2 className="text-center mb-4" style={{ color: "#2c3e50" }}>
+                User Profile
+            </h2>
+
+            {isLoading ? (
+                <div className="text-center">
+                    <Spinner animation="border" variant="primary" />
+                    <p className="mt-2">Loading profile...</p>
                 </div>
+            ) : profile ? (
+                <Card className="shadow-lg" style={{ maxWidth: "500px", margin: "0 auto" }}>
+                    <Card.Header className="bg-primary text-white text-center">
+                        <h4 className="mb-0">
+                            {profile.username}
+                            {isAdmin && (
+                                <Badge bg="success" className="ms-2">
+                                    Admin
+                                </Badge>
+                            )}
+                        </h4>
+                    </Card.Header>
+                    <Card.Body>
+                        <Card.Text>
+                            <strong>Email:</strong> {profile.email}
+                        </Card.Text>
+                        <Card.Text>
+                            <strong>Member Since:</strong>{" "}
+                            {new Date(profile.createdAt || Date.now()).toLocaleDateString()}
+                        </Card.Text>
+
+                        {/* Action Buttons */}
+                        <div className="d-flex justify-content-between mt-4">
+                            {isAdmin && (
+                                <Link
+                                    to="/add_product"
+                                    className="btn btn-primary"
+                                    style={{ backgroundColor: "#2980b9", borderColor: "#2980b9" }}
+                                >
+                                    <i className="bi bi-plus-circle me-1"></i> Add Product
+                                </Link>
+                            )}
+                            <Button
+                                variant="danger"
+                                onClick={handleLogout}
+                                className="ms-auto"
+                            >
+                                <i className="bi bi-box-arrow-right me-1"></i> Logout
+                            </Button>
+                        </div>
+                    </Card.Body>
+                    <Card.Footer className="text-muted text-center">
+                        Last updated: {new Date().toLocaleTimeString()}
+                    </Card.Footer>
+                </Card>
             ) : user ? (
-                <p>Loading profile...</p>
+                <div className="text-center">
+                    <Spinner animation="border" variant="primary" />
+                    <p className="mt-2">Loading profile...</p>
+                </div>
             ) : (
-                <p>Please log in to view your profile</p>
+                <div className="text-center">
+                    <p className="lead">Please log in to view your profile</p>
+                    <Link to="/login" className="btn btn-outline-primary">
+                        Go to Login
+                    </Link>
+                </div>
             )}
         </div>
     );

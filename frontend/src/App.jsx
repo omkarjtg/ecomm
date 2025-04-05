@@ -5,9 +5,8 @@ import Navbar from "./components/Navbar";
 import Cart from "./components/Cart";
 import AddProduct from "./components/AddProduct";
 import Product from "./components/Product";
-import { ToastContainer } from "react-toastify";
-
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppProvider } from "./context/Context";
 import UpdateProduct from "./components/UpdateProduct";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -15,6 +14,39 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import LoginForm from "./components/Login";
 import RegisterForm from "./components/SignUp";
 import Profile from "./components/Profile";
+import Forbidden from "./components/Forbidden";
+import { useAuth } from "./context/AuthContext";
+import NotFound from "./components/NotFound";
+
+// ProtectedRoute component
+const ProtectedRoute = ({ children, requireAdmin = false }) => {
+  const { isLoggedIn, user } = useAuth();
+  const [redirectState, setRedirectState] = useState({
+    shouldRedirect: false,
+    shouldShowForbidden: false
+  });
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      toast.info("Please log in to access this page");
+      setRedirectState({ shouldRedirect: true, shouldShowForbidden: false });
+    } else if (requireAdmin && !user?.isAdmin) {
+      toast.info("Admin access required for this page");
+      setRedirectState({ shouldRedirect: false, shouldShowForbidden: true });
+    } else {
+      setRedirectState({ shouldRedirect: false, shouldShowForbidden: false });
+    }
+  }, [isLoggedIn, user, requireAdmin]);
+
+  if (redirectState.shouldRedirect) {
+    return <Navigate to="/login" replace />;
+    
+  }
+  if (redirectState.shouldShowForbidden) {
+    return <Navigate to="/forbidden" replace />;
+  }
+  return children;
+};
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -44,8 +76,9 @@ function App() {
     <AppProvider>
       <BrowserRouter>
         <Navbar onSelectCategory={handleCategorySelect} />
-        <ToastContainer autoClose={1000} />
+        <ToastContainer autoClose={2000} />
         <Routes>
+          {/* Public Routes */}
           <Route
             path="/"
             element={
@@ -55,15 +88,49 @@ function App() {
               />
             }
           />
-
-          <Route path="/add_product" element={<AddProduct />} />
-          <Route path="/product" element={<Product />} />
           <Route path="/product/:id" element={<Product />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/product/update/:id" element={<UpdateProduct />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/signup" element={<RegisterForm />} />
-          <Route path="/profile" element={<Profile   />} />
+          <Route path="/forbidden" element={<Forbidden />} />
+
+          {/* Protected Routes (require login) */}
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin-only Routes */}
+          <Route
+            path="/add_product"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <AddProduct />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/product/update/:id"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <UpdateProduct />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Catch-all route should be last */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </AppProvider>

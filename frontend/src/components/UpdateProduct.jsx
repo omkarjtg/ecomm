@@ -1,18 +1,16 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/Form.css";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
-
-
 const UpdateProduct = () => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const { id } = useParams();
   const [product, setProduct] = useState({});
   const [image, setImage] = useState(null);
@@ -88,7 +86,6 @@ const UpdateProduct = () => {
       );
 
       console.log("Product updated successfully:", response.data);
-
       toast.success("Product updated successfully!");
       navigate(`/product/${id}`);
     } catch (error) {
@@ -100,13 +97,25 @@ const UpdateProduct = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUpdateProduct((prev) => ({ ...prev, [name]: value }));
-
   };
 
   const handleImageChange = (e) => {
     setImage(e.target.files[0]);
   };
 
+  // If user is not admin, show forbidden message
+  if (!isAdmin) {
+    return (
+      <div className="update-product-container">
+        <div className="center-container">
+          <h1>Forbidden</h1>
+          <p>You don't have permission to update products. Admin access required.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is admin, show the update form
   return (
     <div className="update-product-container">
       <div className="center-container">
@@ -265,4 +274,4 @@ const UpdateProduct = () => {
   );
 };
 
-export default UpdateProduct;
+export default UpdateProduct;   

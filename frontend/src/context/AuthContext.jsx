@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "../axios";
-    
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
     const [user, setUser] = useState(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -13,33 +14,43 @@ export const AuthProvider = ({ children }) => {
             // Fetch user profile on app load
             axios.get("/profile")
                 .then(res => {
+
                     setUser(res.data);
                     setIsLoggedIn(true);
+                    // Check if user has ADMIN role (note uppercase)
+                    setIsAdmin(res.data.roles?.includes('ADMIN') || false);
                 })
                 .catch(err => {
                     console.error("Failed to load profile", err);
                     logout();
                 });
         }
-    }, []); 
+    }, []);
 
-    const login = (token) => {
+    const login = async (token) => {
         localStorage.setItem("token", token);
         setIsLoggedIn(true);
-        // Fetch user profile after login
-        axios.get("/profile")
-            .then(res => setUser(res.data))
-            .catch(err => console.error("Failed to fetch profile after login", err));
+
+        try {
+            const res = await axios.get("/profile");
+            setUser(res.data);
+            setIsAdmin(res.data.roles?.includes('ADMIN') || false);
+        } catch (err) {
+            console.error("Failed to fetch profile after login", err);
+            logout();
+        }
     };
+
 
     const logout = () => {
         localStorage.removeItem("token");
         setIsLoggedIn(false);
         setUser(null);
+        setIsAdmin(false);
     };
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
+        <AuthContext.Provider value={{ isLoggedIn, user, isAdmin, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

@@ -78,7 +78,7 @@ const Navbar = ({ onSelectCategory }) => {
     const categories = [
         "Laptops",
         "Headphones",
-        "Mobiles",
+        "Mobile Phones",
         "Television",
         "Electronics",
         "Toys",
@@ -104,13 +104,13 @@ const Navbar = ({ onSelectCategory }) => {
                     </button>
 
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
-                           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                             <li className="nav-item">
                                 <a className="nav-link active" href="/">Home</a>
                             </li>
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                                 <a className="nav-link" href="/add_product">Add Product</a>
-                            </li>
+                            </li> */}
                             <li className="nav-item dropdown">
                                 <button className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     Categories
@@ -118,7 +118,10 @@ const Navbar = ({ onSelectCategory }) => {
                                 <ul className="dropdown-menu">
                                     {categories.map((category) => (
                                         <li key={category}>
-                                            <button className="dropdown-item" onClick={() => onSelectCategory(category)}>
+                                            <button
+                                                className="dropdown-item"
+                                                onClick={() => onSelectCategory(category)}
+                                            >
                                                 {category}
                                             </button>
                                         </li>
@@ -181,6 +184,7 @@ const Navbar = ({ onSelectCategory }) => {
                                         <div className="user-menu">
                                             <ul>
                                                 <li onClick={() => navigate("/profile")}>Profile</li>
+                                                <li onClick={() => navigate("/orders")}>My Orders</li>
                                                 <li style={{ "backgroundColor": "#d55360" }} onClick={handleLogout}>Logout</li>
                                             </ul>
                                         </div>

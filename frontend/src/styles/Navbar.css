@@ -42,15 +42,16 @@
 .navbar .navbar-toggler {
     /* display: block !important;  Ensures visibility */
     /* border: 1px solid rgb(33, 30, 30) !important;  Makes it stand out */
-    background-color: rgba(172, 165, 165, 0.2) !important;  /* Light background */
+    background-color: rgba(172, 165, 165, 0.2) !important;
+    /* Light background */
     padding: 8px 12px;
-  }
-  
-  .navbar .navbar-toggler-icon {
-    background-color: rgb(103, 101, 101) !important;  
+}
+
+.navbar .navbar-toggler-icon {
+    background-color: rgb(103, 101, 101) !important;
     border-radius: 5px;
-  }
-  
+}
+
 
 /* Search Result Items */
 .search-dropdown .list-group-item {
@@ -165,4 +166,21 @@
 .user-icon:hover {
     color: #6b6a6a;
     /* Lighter gray for hover, more subtle in dark theme */
+}
+.dropdown {
+    position: relative;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+/* Ensure click behavior still works */
+.dropdown-toggle::after {
+    display: inline-block;
+}
+
+/* Optional: Add some transition for smooth appearance */
+.dropdown-menu {
+    transition: all 0.2s ease-in-out;
 }
