@@ -29,6 +29,7 @@ const LoginForm = () => {
         try {
             const response = await axios.post("http://localhost:8080/login", values);
             login(response.data);
+            axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             navigate(from, { state: { message: "Login successful!" } });
             toast.success("Login successful!");
         } catch (error) {

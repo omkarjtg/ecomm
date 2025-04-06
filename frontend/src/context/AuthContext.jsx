@@ -12,6 +12,10 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem("token");
         if (token) {
             // Fetch user profile on app load
+            const token = localStorage.getItem("token");
+            if (token) {
+                axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+            }
             axios.get("/profile")
                 .then(res => {
 
@@ -41,6 +45,9 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const hasRole = (role) => {
+        return user?.roles?.includes(role) || false;
+    };
 
     const logout = () => {
         localStorage.removeItem("token");
@@ -50,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn, user, isAdmin, login, logout }}>
+        <AuthContext.Provider value={{ isLoggedIn, user, isAdmin, login, logout, hasRole }}>
             {children}
         </AuthContext.Provider>
     );

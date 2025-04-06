@@ -3,14 +3,16 @@ import AppContext from "../context/Context";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../styles/Cart.css";
+import CheckoutPopup from "./CheckoutPopup";
+import Swal from "sweetalert2";
 
 const Cart = () => {
-  const { cart, removeFromCart, clearCart } = useContext(AppContext);
+  const { cart, removeFromCart, clearCart, user } = useContext(AppContext);
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [cartImage, setCartImage] = useState([]);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState(null);
+  const [showCheckoutPopup, setShowCheckoutPopup] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,8 +29,6 @@ const Cart = () => {
                 `http://localhost:8080/api/product/${item.id}/image`,
                 { responseType: "blob" }
               );
-              const imageFile = await converUrlToFile(response.data, response.data.imageName);
-              setCartImage(imageFile);
               const imageUrl = URL.createObjectURL(response.data);
               return { ...item, imageUrl };
             } catch (error) {
@@ -56,9 +56,17 @@ const Cart = () => {
     setTotalPrice(total);
   }, [cartItems]);
 
-  const converUrlToFile = async (blobData, fileName) => {
-    const file = new File([blobData], fileName, { type: blobData.type });
-    return file;
+  const handleProceedToCheckout = () => {
+    const outOfStockItems = cartItems.filter(item => item.quantity > item.stockQuantity);
+    if (outOfStockItems.length > 0) {
+      setCheckoutError(`Some items exceed available stock`);
+      return;
+    }
+    setShowCheckoutPopup(true);
+  };
+
+  const handleCloseCheckoutPopup = () => {
+    setShowCheckoutPopup(false);
   };
 
   const handleIncreaseQuantity = (itemId) => {
@@ -90,37 +98,119 @@ const Cart = () => {
     setCartItems(newCartItems);
   };
 
+  const processOrder = async () => {
+    try {
+      // Update product stocks
+      for (const item of cartItems) {
+        await axios.put(
+          `http://localhost:8080/api/product/${item.id}`,
+          { stockQuantity: item.stockQuantity - item.quantity },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("jwtToken")}`
+            }
+          }
+        );
+      }
+
+      // Create order record
+      await axios.post(
+        'http://localhost:8080/api/orders/create',
+        {
+          userId: user?.id,
+          items: cartItems.map(item => ({
+            productId: item.id,
+            quantity: item.quantity,
+            price: item.price
+          }))
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("jwtToken")}`
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Order processing failed:', error);
+      throw error;
+    }
+  };
+
   const handleCheckout = async () => {
     setIsCheckingOut(true);
     setCheckoutError(null);
+    setShowCheckoutPopup(false);
 
     try {
-      for (const item of cartItems) {
-        const { imageUrl, imageName, imageData, imageType, quantity, ...rest } = item;
-        const updatedStockQuantity = item.stockQuantity - item.quantity;
+      const amountInCents = Math.round(totalPrice * 100); // Convert to cents for Razorpay
 
-        const updatedProductData = { ...rest, stockQuantity: updatedStockQuantity };
-
-        const cartProduct = new FormData();
-        cartProduct.append("imageFile", cartImage);
-        cartProduct.append(
-          "product",
-          new Blob([JSON.stringify(updatedProductData)], { type: "application/json" })
-        );
-
-        await axios.put(`http://localhost:8080/api/product/${item.id}`, cartProduct, {
+      const response = await axios.post(
+        'http://localhost:8080/api/payment/create-order',
+        {
+          amount: amountInCents,
+          currency: 'USD',
+          receipt: `order_${Date.now()}`
+        },
+        {
           headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-      }
+            Authorization: `Bearer ${localStorage.getItem('jwtToken')}`
+          }
+        }
+      );
 
-      clearCart();
-      setCartItems([]);
-      navigate("/checkout-success"); // Redirect to success page
+      const { id: order_id, currency, amount } = response.data;
+
+      const options = {
+        key: 'rzp_test_KR4cQ1DoHif5Ar', // Replace with your Razorpay key
+        amount,
+        currency,
+        name: 'E-Commerce Store',
+        description: 'Purchase',
+        order_id,
+        handler: async (response) => {
+          try {
+            await axios.post(
+              'http://localhost:8080/api/payment/verify',
+              {
+                orderId: order_id,
+                paymentId: response.razorpay_payment_id,
+                signature: response.razorpay_signature
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('jwtToken')}`
+                }
+              }
+            );
+
+            await processOrder();
+            clearCart();
+            navigate('/checkout-success');
+          } catch (err) {
+            console.error('Payment verification failed:', err);
+            Swal.fire('Payment Error', 'Verification failed. Contact support.', 'error');
+          }
+        },
+        prefill: {
+          name: user?.username || '',
+          email: user?.email || '',
+          contact: ''
+        },
+        theme: {
+          color: '#3399cc'
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
     } catch (error) {
-      console.error("Error during checkout:", error);
-      setCheckoutError("Checkout failed. Please try again.");
+      console.error('Checkout failed:', error);
+      Swal.fire(
+        'Payment Failed', 
+        error.response?.data?.message || 'Checkout error. Please try again.', 
+        'error'
+      );
     } finally {
       setIsCheckingOut(false);
     }
@@ -151,7 +241,7 @@ const Cart = () => {
                       onClick={() => handleDecreaseQuantity(item.id)}
                       disabled={isCheckingOut}
                     >
-                      <i className="bi bi-dash-square-fill"></i>
+                      -
                     </button>
                     <input type="text" value={item.quantity} readOnly />
                     <button
@@ -159,18 +249,18 @@ const Cart = () => {
                       onClick={() => handleIncreaseQuantity(item.id)}
                       disabled={isCheckingOut}
                     >
-                      <i className="bi bi-plus-square-fill"></i>
+                      +
                     </button>
                   </div>
 
                   <div className="total-price">${(item.price * item.quantity).toFixed(2)}</div>
 
                   <button
-                    className="remove-btn"
+                    className="btn btn-danger"
                     onClick={() => handleRemoveFromCart(item.id)}
                     disabled={isCheckingOut}
                   >
-                    <button type="button" className="btn btn-danger">REMOVE</button>
+                    REMOVE
                   </button>
                 </div>
               </div>
@@ -186,19 +276,21 @@ const Cart = () => {
             )}
             <button
               className="checkout-btn"
-              onClick={handleCheckout}
+              onClick={handleProceedToCheckout}
               disabled={isCheckingOut || cartItems.length === 0}
             >
-              {isCheckingOut ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Processing...
-                </>
-              ) : (
-                'Proceed to Checkout'
-              )}
+              {isCheckingOut ? 'Processing...' : 'Proceed to Checkout'}
             </button>
           </div>
+
+          <CheckoutPopup
+            show={showCheckoutPopup}
+            handleClose={handleCloseCheckoutPopup}
+            cartItems={cartItems}
+            totalPrice={totalPrice}
+            handleCheckout={handleCheckout}
+            loading={isCheckingOut}
+          />
         </>
       )}
     </div>

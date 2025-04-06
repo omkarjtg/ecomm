@@ -20,31 +20,33 @@ import NotFound from "./components/NotFound";
 
 // ProtectedRoute component
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
-  const { isLoggedIn, user } = useAuth();
-  const [redirectState, setRedirectState] = useState({
-    shouldRedirect: false,
-    shouldShowForbidden: false
-  });
+  const { isLoggedIn, hasRole } = useAuth();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [shouldShowForbidden, setShouldShowForbidden] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) {
       toast.info("Please log in to access this page");
-      setRedirectState({ shouldRedirect: true, shouldShowForbidden: false });
-    } else if (requireAdmin && !user?.isAdmin) {
-      toast.info("Admin access required for this page");
-      setRedirectState({ shouldRedirect: false, shouldShowForbidden: true });
-    } else {
-      setRedirectState({ shouldRedirect: false, shouldShowForbidden: false });
+      setShouldRedirect(true);
+      return;
     }
-  }, [isLoggedIn, user, requireAdmin]);
 
-  if (redirectState.shouldRedirect) {
+    if (requireAdmin && !hasRole("ADMIN")) {
+      toast.info("Admin access required for this page");
+      setShouldShowForbidden(true);
+      return;
+    }
+  }, [isLoggedIn, requireAdmin, hasRole]);
+  if (!isLoggedIn) {
+    toast.info("Please log in to access this page");
     return <Navigate to="/login" replace />;
-    
   }
-  if (redirectState.shouldShowForbidden) {
+
+  if (requireAdmin && !hasRole("ADMIN")) {
+    toast.info("Admin access required for this page");
     return <Navigate to="/forbidden" replace />;
   }
+
   return children;
 };
 
@@ -129,7 +131,7 @@ function App() {
             }
           />
 
-          {/* Catch-all route should be last */}
+          {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
