@@ -1,13 +1,14 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
 import Home from "./components/Home";
+import { useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Cart from "./components/Cart";
 import AddProduct from "./components/AddProduct";
 import Product from "./components/Product";
 import { toast, ToastContainer } from "react-toastify";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AppProvider } from "./context/Context";
+import { Routes, Route, Navigate } from "react-router-dom";
+import API from './axios';
 import UpdateProduct from "./components/UpdateProduct";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -17,6 +18,7 @@ import Profile from "./components/Profile";
 import Forbidden from "./components/Forbidden";
 import { useAuth } from "./context/AuthContext";
 import NotFound from "./components/NotFound";
+
 
 // ProtectedRoute component
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -37,26 +39,27 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       return;
     }
   }, [isLoggedIn, requireAdmin, hasRole]);
-  if (!isLoggedIn) {
-    toast.info("Please log in to access this page");
+
+  if (shouldRedirect) {
     return <Navigate to="/login" replace />;
   }
 
-  if (requireAdmin && !hasRole("ADMIN")) {
-    toast.info("Admin access required for this page");
+  if (shouldShowForbidden) {
     return <Navigate to="/forbidden" replace />;
   }
 
   return children;
-};
+}
+
 
 function App() {
   const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const navigate = useNavigate();
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
-    console.log("Selected category:", category);
+    navigate('/');
   };
 
   const addToCart = (product) => {
@@ -75,67 +78,70 @@ function App() {
   };
 
   return (
-    <AppProvider>
-      <BrowserRouter>
-        <Navbar onSelectCategory={handleCategorySelect} />
-        <ToastContainer autoClose={2000} />
-        <Routes>
-          {/* Public Routes */}
-          <Route
-            path="/"
-            element={
-              <Home
-                addToCart={addToCart}
-                selectedCategory={selectedCategory}
-              />
-            }
-          />
-          <Route path="/product/:id" element={<Product />} />
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/signup" element={<RegisterForm />} />
-          <Route path="/forbidden" element={<Forbidden />} />
+    <>
+      <Navbar
+        onSelectCategory={handleCategorySelect}
+        selectedCategory={selectedCategory}
+      />
+      <ToastContainer
+        position="top-center"
+        autoClose={1500} />
+      <Routes>
+        {/* Public Routes */}
+        <Route
+          path="/"
+          element={
+            <Home
+              addToCart={addToCart}
+              selectedCategory={selectedCategory}
+            />
+          }
+        />
+        <Route path="/product/:id" element={<Product />} />
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/signup" element={<RegisterForm />} />
+        <Route path="/forbidden" element={<Forbidden />} />
 
-          {/* Protected Routes (require login) */}
-          <Route
-            path="/cart"
-            element={
-              <ProtectedRoute>
-                <Cart />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
+        {/* Protected Routes (require login) */}
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Admin-only Routes */}
-          <Route
-            path="/add_product"
-            element={
-              <ProtectedRoute requireAdmin={true}>
-                <AddProduct />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/product/update/:id"
-            element={
-              <ProtectedRoute requireAdmin={true}>
-                <UpdateProduct />
-              </ProtectedRoute>
-            }
-          />
+        {/* Admin-only Routes */}
+        <Route
+          path="/add_product"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AddProduct />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/product/update/:id"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <UpdateProduct />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </AppProvider>
+        {/* Catch-all route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 }
 

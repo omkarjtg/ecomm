@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
+import API from "../axios";
 import "../styles/Auth.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const SignupForm = () => {
-    const { login } = useAuth();    
+    const { login } = useAuth();
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -25,29 +25,29 @@ const SignupForm = () => {
         password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
     });
 
-        const handleSubmit = async (values, { setSubmitting, setStatus }) => {
-            try {
-                // Register user
-                await axios.post("http://localhost:8080/register", values);
+    const handleSubmit = async (values, { setSubmitting, setStatus }) => {
+        try {
+            // Register user
+            await API.post("/register", values);
 
-                // Auto-login after successful registration
-                const loginResponse = await axios.post("http://localhost:8080/login", {
-                    identifier: values.email,
-                    password: values.password,
-                });
+            // Auto-login after successful registration
+            const loginResponse = await API.post("/login", {
+                identifier: values.email,
+                password: values.password,
+            });
 
-                // Store login and redirect
-                login(loginResponse.data);
-                navigate("/", { state: { message: "Signup successful! You are now logged in." } });
-                toast.success("Sign up successful, Welcome!");
+            // Store login and redirect
+            login(loginResponse.data);
+            navigate("/", { state: { message: "Signup successful! You are now logged in." } });
+            toast.success("Sign up successful, Welcome!");
 
-            } catch (error) {
-                setStatus({ error: error.response?.data?.message || "Signup/login failed. Please try again." });
-                console.error("Signup/Login error:", error);
-            } finally {
-                setSubmitting(false);
-            }
-        };
+        } catch (error) {
+            setStatus({ error: error.response?.data?.message || "Signup/login failed. Please try again." });
+            console.error("Signup/Login error:", error);
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
 
     const handleClose = () => navigate("/");

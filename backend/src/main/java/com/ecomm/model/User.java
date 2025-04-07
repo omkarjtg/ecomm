@@ -8,6 +8,8 @@
     import lombok.NoArgsConstructor;
     import lombok.Setter;
 
+    import java.time.LocalDate;
+
     @Entity
     @Getter
     @Setter
@@ -30,7 +32,15 @@
         @Size(min = 6, message = "Password must be at least 6 characters")
         private String password;
 
+        @Column(name = "joined_at", nullable = false, updatable = false)
+        private LocalDate joinedAt;
+
         @Enumerated(EnumType.STRING)  // Store as VARCHAR instead of separate table
         @Column(nullable = false)
         private Role roles;
+
+        @PrePersist
+        protected  void onCreate(){
+            joinedAt = LocalDate.now();
+        }
     }

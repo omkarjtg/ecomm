@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
+import API from "../axios";
 import "../styles/Auth.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -21,18 +21,22 @@ const LoginForm = () => {
     };
 
     const validationSchema = Yup.object({
-        identifier: Yup.string().required("Username or email is required"),
+        identifier: Yup.string().required("Username or email is requir  ed"),
         password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
     });
 
     const handleSubmit = async (values, { setSubmitting, setStatus }) => {
         try {
-            const response = await axios.post("http://localhost:8080/login", values);
-            login(response.data);
-            axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+            const response = await API.post("/login", values);
+            const token = response.data;
+            // wherever you call login():
+            console.log("Received token:", response.data);
+            login(token);
+            // API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             navigate(from, { state: { message: "Login successful!" } });
             toast.success("Login successful!");
         } catch (error) {
+            console.log(error);
             setStatus({ error: error.response?.data?.message || "Login failed. Please try again." });
         } finally {
             setSubmitting(false);

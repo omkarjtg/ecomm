@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import AppContext from "../context/Context";
 import { useAuth } from "../context/AuthContext"; // Added import for useAuth
-import axios from "../axios";
+import API from "../axios";
 import "../styles/Product.css";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
@@ -19,7 +19,7 @@ const Product = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/product/${id}`);
+        const response = await API.get(`/api/product/${id}`);
         setProduct(response.data);
         if (response.data.imageName) {
           fetchImage();
@@ -31,7 +31,7 @@ const Product = () => {
 
     const fetchImage = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/product/${id}/image`, {
+        const response = await API.get(`/api/product/${id}/image`, {
           responseType: "blob",
         });
         setImageUrl(URL.createObjectURL(response.data));
@@ -61,7 +61,7 @@ const Product = () => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:8080/api/product/${id}`);
+        await API.delete(`/api/product/${id}`);
         removeFromCart(id);
         toast.info("Product deleted successfully");
         refreshData();

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "../axios";
+import API from "../axios";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
@@ -21,7 +21,7 @@ const Profile = () => {
             setIsLoading(true);
             try {
                 console.log("Fetching profile...");
-                const response = await axios.get(`/profile`);
+                const response = await API.get(`/profile`);
                 console.log("Profile response:", response);
                 setProfile(response.data);
             } catch (error) {
@@ -75,7 +75,12 @@ const Profile = () => {
                         </Card.Text>
                         <Card.Text>
                             <strong>Member Since:</strong>{" "}
-                            {new Date(profile.createdAt || Date.now()).toLocaleDateString()}
+                            {new Date(profile.joinedAt).toLocaleDateString("en-US", {
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                            })}
+
                         </Card.Text>
 
                         {/* Action Buttons */}
@@ -98,9 +103,9 @@ const Profile = () => {
                             </Button>
                         </div>
                     </Card.Body>
-                    <Card.Footer className="text-muted text-center">
+                    {/* <Card.Footer className="text-muted text-center">
                         Last updated: {new Date().toLocaleTimeString()}
-                    </Card.Footer>
+                    </Card.Footer> */}
                 </Card>
             ) : user ? (
                 <div className="text-center">

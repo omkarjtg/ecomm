@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import AppContext from "../context/Context";
-import axios from "axios";
+import API from "axios";
 import { useNavigate } from "react-router-dom";
 import "../styles/Cart.css";
 import CheckoutPopup from "./CheckoutPopup";
@@ -18,14 +18,14 @@ const Cart = () => {
   useEffect(() => {
     const fetchImagesAndUpdateCart = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/products");
+        const response = await API.get("http://localhost:8080/api/products");
         const backendProductIds = response.data.map((product) => product.id);
 
         const updatedCartItems = cart.filter((item) => backendProductIds.includes(item.id));
         const cartItemsWithImages = await Promise.all(
           updatedCartItems.map(async (item) => {
             try {
-              const response = await axios.get(
+              const response = await API.get(
                 `http://localhost:8080/api/product/${item.id}/image`,
                 { responseType: "blob" }
               );
@@ -102,7 +102,7 @@ const Cart = () => {
     try {
       // Update product stocks
       for (const item of cartItems) {
-        await axios.put(
+        await API.put(
           `http://localhost:8080/api/product/${item.id}`,
           { stockQuantity: item.stockQuantity - item.quantity },
           {
@@ -114,7 +114,7 @@ const Cart = () => {
       }
 
       // Create order record
-      await axios.post(
+      await API.post(
         'http://localhost:8080/api/orders/create',
         {
           userId: user?.id,
@@ -144,7 +144,7 @@ const Cart = () => {
     try {
       const amountInCents = Math.round(totalPrice * 100); // Convert to cents for Razorpay
 
-      const response = await axios.post(
+      const response = await API.post(
         'http://localhost:8080/api/payment/create-order',
         {
           amount: amountInCents,
@@ -169,7 +169,7 @@ const Cart = () => {
         order_id,
         handler: async (response) => {
           try {
-            await axios.post(
+            await API.post(
               'http://localhost:8080/api/payment/verify',
               {
                 orderId: order_id,

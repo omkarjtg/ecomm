@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../axios";
 import { useAuth } from "../context/AuthContext";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -33,14 +33,14 @@ const UpdateProduct = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8080/api/product/${id}`
+        const response = await API.get(
+          `api/product/${id}`
         );
 
         setProduct(response.data);
 
-        const responseImage = await axios.get(
-          `http://localhost:8080/api/product/${id}/image`,
+        const responseImage = await API.get(
+          `/api/product/${id}/image`,
           { responseType: "blob" }
         );
         const imageFile = await converUrlToFile(
@@ -77,8 +77,8 @@ const UpdateProduct = () => {
     }
 
     try {
-      const response = await axios.put(
-        `http://localhost:8080/api/product/${id}`,
+      const response = await API.put(
+        `/api/product/${id}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -274,4 +274,4 @@ const UpdateProduct = () => {
   );
 };
 
-export default UpdateProduct;   
+export default UpdateProduct;

@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import "../styles/Navbar.css";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import * as bootstrap from "bootstrap";
 
-const Navbar = ({ onSelectCategory }) => {
+const Navbar = ({ onSelectCategory, selectedCategory }) => { // Add selectedCategory as a prop
     const navigate = useNavigate();
     const location = useLocation();
     const [input, setInput] = useState("");
@@ -15,7 +16,7 @@ const Navbar = ({ onSelectCategory }) => {
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef(null);
-    const from = location.state?.from || "/";
+    const dropdownRef = useRef(null);
     const { isLoggedIn, logout } = useAuth();
 
     useEffect(() => {
@@ -30,7 +31,7 @@ const Navbar = ({ onSelectCategory }) => {
 
     const handleLogout = () => {
         logout();
-        toast.info("Logged out succesfully");
+        toast.info("Logged out successfully");
         navigate("/");
     };
 
@@ -75,6 +76,14 @@ const Navbar = ({ onSelectCategory }) => {
         }
     };
 
+    const handleCategoryClick = (category) => {
+        onSelectCategory(category);
+        if (dropdownRef.current) {
+            const dropdown = bootstrap.Dropdown.getOrCreateInstance(dropdownRef.current);
+            dropdown.hide();
+        }
+    };
+
     const categories = [
         "Laptops",
         "Headphones",
@@ -106,13 +115,16 @@ const Navbar = ({ onSelectCategory }) => {
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                             <li className="nav-item">
-                                <a className="nav-link active" href="/">Home</a>
+                                <Link className="nav-link active" to="/">Home</Link>
                             </li>
-                            {/* <li className="nav-item">
-                                <a className="nav-link" href="/add_product">Add Product</a>
-                            </li> */}
                             <li className="nav-item dropdown">
-                                <button className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <button
+                                    className="nav-link dropdown-toggle"
+                                    ref={dropdownRef}
+                                    role="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                >
                                     Categories
                                 </button>
                                 <ul className="dropdown-menu">
@@ -120,7 +132,7 @@ const Navbar = ({ onSelectCategory }) => {
                                         <li key={category}>
                                             <button
                                                 className="dropdown-item"
-                                                onClick={() => onSelectCategory(category)}
+                                                onClick={() => handleCategoryClick(category)}
                                             >
                                                 {category}
                                             </button>
@@ -128,6 +140,14 @@ const Navbar = ({ onSelectCategory }) => {
                                     ))}
                                 </ul>
                             </li>
+                            {/* Display selected category */}
+                            {selectedCategory && (
+                                <li className="nav-item">
+                                    <span className="nav-link">
+                                        {selectedCategory}
+                                    </span>
+                                </li>
+                            )}
                         </ul>
 
                         {/* Search */}

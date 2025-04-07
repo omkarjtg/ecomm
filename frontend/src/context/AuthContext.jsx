@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "../axios";
+import API from "../axios";
 
 const AuthContext = createContext();
 
@@ -10,38 +10,40 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-        if (token) {
-            // Fetch user profile on app load
-            const token = localStorage.getItem("token");
-            if (token) {
-                axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-            }
-            axios.get("/profile")
+        if (token && token !== "undefined") {
+            // API.defaults.headers.common["Authorization"] = `Bearer ${token}`;    
+        
+            API.get("/profile")
                 .then(res => {
-
                     setUser(res.data);
                     setIsLoggedIn(true);
-                    // Check if user has ADMIN role (note uppercase)
                     setIsAdmin(res.data.roles?.includes('ADMIN') || false);
                 })
                 .catch(err => {
                     console.error("Failed to load profile", err);
-                    logout();
+                    // logout();
                 });
         }
     }, []);
 
     const login = async (token) => {
+        if (!token) {
+            console.error("No token received for login.");
+            return;
+        }
+
         localStorage.setItem("token", token);
+        // API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         setIsLoggedIn(true);
 
+     
         try {
-            const res = await axios.get("/profile");
-            setUser(res.data);
-            setIsAdmin(res.data.roles?.includes('ADMIN') || false);
+            const decodedToken = JSON.parse(atob(token.split('.')[1])); // Decode JWT payload
+            setUser({ email: decodedToken.sub }); // Example: set minimal user data
+            setIsAdmin(decodedToken.role === 'ADMIN' || decodedToken.roles?.includes('ADMIN') || false);
         } catch (err) {
-            console.error("Failed to fetch profile after login", err);
-            logout();
+            console.error("Failed to decode token", err);
+      
         }
     };
 

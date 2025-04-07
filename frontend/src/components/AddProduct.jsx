@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import API from "../axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/Form.css";
@@ -16,7 +16,7 @@ const AddProduct = () => {
     price: "",
     category: "",
     stockQuantity: "",
-    releaseDate: null, // Using Date object for DatePicker
+    releaseDate: null,
     productAvailable: false,
   });
   const [image, setImage] = useState(null);
@@ -64,13 +64,13 @@ const AddProduct = () => {
 
       console.log("Using token for API request:", token); // Debugging
 
-      const response = await axios.post(
-        "http://localhost:8080/api/product",
+      const response = await API.post(
+        "/api/product",
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`  
+            Authorization: `Bearer ${token}`
           },
         }
       );
