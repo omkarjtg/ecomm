@@ -23,11 +23,16 @@ import Orders from "./components/Orders";
 
 // ProtectedRoute component
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
-  const { isLoggedIn, hasRole } = useAuth();
+  const { isLoggedIn, hasRole, user } = useAuth();
+  const [checked, setChecked] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const [shouldShowForbidden, setShouldShowForbidden] = useState(false);
 
   useEffect(() => {
+    if (user === null) return; // wait for user data to load
+
+    setChecked(true);
+
     if (!isLoggedIn) {
       toast.info("Please log in to access this page");
       setShouldRedirect(true);
@@ -39,18 +44,17 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       setShouldShowForbidden(true);
       return;
     }
-  }, [isLoggedIn, requireAdmin, hasRole]);
+  }, [isLoggedIn, requireAdmin, hasRole, user]);
 
-  if (shouldRedirect) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!checked) return null; // or a loader
 
-  if (shouldShowForbidden) {
-    return <Navigate to="/forbidden" replace />;
-  }
+  if (shouldRedirect) return <Navigate to="/login" replace />;
+  if (shouldShowForbidden) return <Navigate to="/forbidden" replace />;
 
   return children;
-}
+};
+
+
 
 
 function App() {

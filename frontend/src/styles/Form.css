@@ -50,6 +50,50 @@ textarea.form-control  {
   border: 1px groove #6f6f6f;
 }
 
+/* Form.css */
+
+/* Existing styles */
+.update-product-container {
+  padding: 20px;
+}
+
+.center-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* New styles for button group */
+.button-group {
+  display: flex;
+  gap: 10px; /* Space between buttons */
+  justify-content: flex-end; /* Align buttons to the right */
+  margin-top: 20px; /* Space above the button group */
+}
+
+.button-group .btn {
+  padding: 8px 16px; /* Consistent padding */
+  font-size: 1rem;
+}
+
+.button-group .btn-primary {
+  background-color: #007bff; /* Bootstrap primary blue */
+  border-color: #007bff;
+}
+
+.button-group .btn-primary:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  border-color: #0056b3;
+}
+
+.button-group .btn-secondary {
+  background-color: #6c757d; /* Bootstrap secondary gray */
+  border-color: #6c757d;
+}
+
+.button-group .btn-secondary:hover {
+  background-color: #5a6268; /* Darker gray on hover */
+  border-color: #5a6268;
+} 
 
 /* Checkbox */
 .form-check-input {

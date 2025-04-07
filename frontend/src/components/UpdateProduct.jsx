@@ -33,16 +33,13 @@ const UpdateProduct = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await API.get(
-          `api/product/${id}`
-        );
+        const response = await API.get(`api/product/${id}`);
 
         setProduct(response.data);
 
-        const responseImage = await API.get(
-          `/api/product/${id}/image`,
-          { responseType: "blob" }
-        );
+        const responseImage = await API.get(`/api/product/${id}/image`, {
+          responseType: "blob",
+        });
         const imageFile = await converUrlToFile(
           responseImage.data,
           response.data.imageName
@@ -77,13 +74,7 @@ const UpdateProduct = () => {
     }
 
     try {
-      const response = await API.put(
-        `/api/product/${id}`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const response = await API.put(`/api/product/${id}`, formData);
 
       console.log("Product updated successfully:", response.data);
       toast.success("Product updated successfully!");
@@ -101,6 +92,10 @@ const UpdateProduct = () => {
 
   const handleImageChange = (e) => {
     setImage(e.target.files[0]);
+  };
+
+  const handleCancel = () => {
+    navigate(`/product/${id}`);
   };
 
   // If user is not admin, show forbidden message
@@ -263,9 +258,16 @@ const UpdateProduct = () => {
             </div>
           </div>
 
-          <div className="col-12">
+          <div className="col-12 button-group">
             <button type="submit" className="btn btn-primary">
               Update Product
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleCancel}
+            >
+              Cancel
             </button>
           </div>
         </form>
@@ -274,4 +276,4 @@ const UpdateProduct = () => {
   );
 };
 
-export default UpdateProduct;
+export default UpdateProduct; 
