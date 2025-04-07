@@ -63,42 +63,49 @@ const Home = ({ selectedCategory }) => {
   }
 
   return (
-    <div className="grid">
-      {filteredProducts.length === 0 ? (
-        <h2 className="no-products">No Products Available</h2>
-      ) : (
-        filteredProducts.map((product) => {
-          const { id, brand, name, price, productAvailable, imageUrl } =
-            product;
+    <div className="home-container">
+      {/* Display selected category as h2 */}
+      <h2 className="category-heading">
+        {selectedCategory ? ` ${selectedCategory}` : ""}
+      </h2>
 
-          return (
-            <Link 
-              to={`/product/${id}`} 
-              style={{ textDecoration: "none", color: "inherit" }}
-              key={id}
-            >
-              <div
-                className={`card ${!productAvailable ? "out-of-stock" : ""}`}
+      <div className="grid">
+        {filteredProducts.length === 0 ? (
+          <h2 className="no-products">No Products Available</h2>
+        ) : (
+          filteredProducts.map((product) => {
+            const { id, brand, name, price, productAvailable, imageUrl } =
+              product;
+
+            return (
+              <Link
+                to={`/product/${id}`}
+                style={{ textDecoration: "none", color: "inherit" }}
+                key={id}
               >
-                <img src={imageUrl} alt={name} />
-                <div className="card-body">
-                  <div>
-                    <h5 className="card-title">{name.toUpperCase()}</h5>
-                    <i className="card-brand">{"~ " + brand}</i>
-                  </div>
-                  <hr className="hr-line" />
-                  <div className="home-cart-price">
-                    <h5>
-                      <i className="bi bi-currency-dollar"></i>
-                      {price}
-                    </h5>
+                <div
+                  className={`card ${!productAvailable ? "out-of-stock" : ""}`}
+                >
+                  <img src={imageUrl} alt={name} />
+                  <div className="card-body">
+                    <div>
+                      <h5 className="card-title">{name.toUpperCase()}</h5>
+                      <i className="card-brand">{"~ " + brand}</i>
+                    </div>
+                    <hr className="hr-line" />
+                    <div className="home-cart-price">
+                      <h5>
+                        <i className="bi bi-currency-dollar"></i>
+                        {price}
+                      </h5>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          );
-        })
-      )}
+              </Link>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 };

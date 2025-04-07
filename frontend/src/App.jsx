@@ -18,6 +18,7 @@ import Profile from "./components/Profile";
 import Forbidden from "./components/Forbidden";
 import { useAuth } from "./context/AuthContext";
 import NotFound from "./components/NotFound";
+import Orders from "./components/Orders";
 
 
 // ProtectedRoute component
@@ -81,7 +82,7 @@ function App() {
     <>
       <Navbar
         onSelectCategory={handleCategorySelect}
-        selectedCategory={selectedCategory}
+      // selectedCategory={selectedCategory}
       />
       <ToastContainer
         position="top-center"
@@ -100,6 +101,7 @@ function App() {
         <Route path="/product/:id" element={<Product />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/signup" element={<RegisterForm />} />
+        <Route path="/orders" element={<Orders />} />
         <Route path="/forbidden" element={<Forbidden />} />
 
         {/* Protected Routes (require login) */}

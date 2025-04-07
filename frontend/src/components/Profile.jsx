@@ -88,19 +88,25 @@ const Profile = () => {
                             {isAdmin && (
                                 <Link
                                     to="/add_product"
-                                    className="btn btn-primary"
-                                    style={{ backgroundColor: "#2980b9", borderColor: "#2980b9" }}
+                                    className="btn btn-success"
+                                // style={{ backgroundColor: "#2980b9", borderColor: "#2980b9" }}
                                 >
                                     <i className="bi bi-plus-circle me-1"></i> Add Product
                                 </Link>
                             )}
-                            <Button
-                                variant="danger"
-                                onClick={handleLogout}
-                                className="ms-auto"
-                            >
-                                <i className="bi bi-box-arrow-right me-1"></i> Logout
-                            </Button>
+                            {!isAdmin && (
+                                <Link to="/orders" className="btn btn-warning orders-btn">
+                                    <i class="bi bi-bag-check-fill me-1"></i>
+                                    Your Orders
+                                </Link>
+                            )}
+                            <button
+                                style={{ color: "black" }}
+                                className="btn btn-danger ms-auto" onClick={handleLogout}>
+                                <i className="bi bi-box-arrow-right me-1"></i>
+                                Log Out
+                            </button>
+
                         </div>
                     </Card.Body>
                     {/* <Card.Footer className="text-muted text-center">
