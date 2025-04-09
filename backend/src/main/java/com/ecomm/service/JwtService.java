@@ -15,15 +15,16 @@ import java.util.stream.Collectors;
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret}") // Load secret key from properties
+    @Value("${jwt.secret}") // Load secret key from application.properties
     private String secretKey;
 
     private Key key;
 
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-
-            claims.put("role", user.getRoles().name());
+        claims.put("role", user.getRoles().name());
+        claims.put("userId", user.getId());
+        claims.put("role", user.getRoles().name());
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -32,6 +33,12 @@ public class JwtService {
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))              // 15 min expiry
                 .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("userId", Long.class);
     }
 
     public String extractEmail(String token) {

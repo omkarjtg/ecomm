@@ -26,14 +26,16 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
-    const login = async (token) => {
+    const login = async (token, user) => {
         if (!token) {
             console.error("No token received for login.");
             return;
         }
 
         localStorage.setItem("token", token);
-        // API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        localStorage.setItem("user", user);
+        console.log(user) 
+        // API.defaults.headers.common["Authorization"] = `Bearer ${token}`;    
         setIsLoggedIn(true);
 
      

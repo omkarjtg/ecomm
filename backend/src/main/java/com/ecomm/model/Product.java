@@ -15,11 +15,11 @@ import java.util.Date;
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     private String name;
     private String description;
     private String brand;
-    private BigDecimal price;
+    private double price;
     private String category;
     private Date releaseDate;
     private boolean productAvailable;
@@ -29,7 +29,7 @@ public class Product {
     @Lob
     private byte[] imageData;
 
-    public Product(int id) {
+    public Product(Long id) {
         this.id = id;
     }
 }

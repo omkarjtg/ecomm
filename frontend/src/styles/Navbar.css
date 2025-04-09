@@ -3,10 +3,8 @@
     top: 40px;
     right: 0;
     background: black;
-    /* Match the navbar background */
     border-radius: 5px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-    /* Slightly stronger shadow for dark theme */
     width: 120px;
     z-index: 100;
 }
@@ -34,9 +32,14 @@
     cursor: pointer;
 }
 
-.navbar .btn-primary,
+.navbar .btn-primary{
+    padding: 6px 12px;
+    margin: 0;
+}
 .navbar .btn-success {
     text-transform: none;
+    
+    
 }
 
 .navbar .navbar-toggler {

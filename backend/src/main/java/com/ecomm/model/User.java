@@ -9,6 +9,7 @@
     import lombok.Setter;
 
     import java.time.LocalDate;
+    import java.util.List;
 
     @Entity
     @Getter
@@ -43,4 +44,8 @@
         protected  void onCreate(){
             joinedAt = LocalDate.now();
         }
+
+        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+        private List<Order> orders;
+
     }

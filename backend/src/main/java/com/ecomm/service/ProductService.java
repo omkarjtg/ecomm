@@ -20,7 +20,7 @@ public class ProductService {
     }
 
     public Product getProductById(int id) {
-        return productRepo.findById(id).orElse(null);
+        return productRepo.findById(id);
     }
 
 
@@ -32,6 +32,22 @@ public class ProductService {
         return productRepo.save(product);
     }
 
+    public void decrementStock(Long productId, int quantity) {
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+        if (product.getStockQuantity() < quantity) {
+            throw new IllegalArgumentException("Not enough stock available");
+        }
+
+        product.setStockQuantity(product.getStockQuantity() - quantity);
+        productRepo.save(product);
+    }
+
+    public byte[] getProductImage(int productId) {
+        Product product = getProductById(productId);
+        return (product != null) ? product.getImageData() : null;
+    }
 
     public void deleteProduct(int id) {
         productRepo.delete(getProductById(id));

@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as bootstrap from "bootstrap";
 
-const Navbar = ({ onSelectCategory, selectedCategory }) => { 
+const Navbar = ({ onSelectCategory, selectedCategory }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [input, setInput] = useState("");
@@ -114,7 +114,7 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
 
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li className="nav-item">
+                            <li className="nav-item">
                                 <a className="nav-link active" href="/">Home</a>
                             </li>
                             <li className="nav-item dropdown">

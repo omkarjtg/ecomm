@@ -20,7 +20,6 @@ public class ProfileDTO {
     private String username;
     private String email;
     private Set<Role> roles;
-    @JsonFormat(pattern = "MM-dd-yyyy")
     private LocalDate joinedAt;
 
     public ProfileDTO(User user) {

@@ -5,18 +5,18 @@ const AppContext = createContext({
   data: [],
   isError: "",
   cart: [],
-  addToCart: (product) => {},
-  removeFromCart: (productId) => {},
-  refreshData:() =>{},
-  updateStockQuantity: (productId, newQuantity) =>{}
-  
+  addToCart: (product) => { },
+  removeFromCart: (productId) => { },
+  updateCartItemQuantity: (productId, newQuantity) => { }, // Added this
+  refreshData: () => { },
+  updateStockQuantity: (productId, newQuantity) => { },
+  clearCart: () => { }
 });
 
 export const AppProvider = ({ children }) => {
   const [data, setData] = useState([]);
   const [isError, setIsError] = useState("");
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('cart')) || []);
-
 
   const addToCart = (product) => {
     const existingProductIndex = cart.findIndex((item) => item.id === product.id);
@@ -27,20 +27,23 @@ export const AppProvider = ({ children }) => {
           : item
       );
       setCart(updatedCart);
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
     } else {
       const updatedCart = [...cart, { ...product, quantity: 1 }];
       setCart(updatedCart);
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
     }
   };
 
   const removeFromCart = (productId) => {
-    console.log("productID",productId)
     const updatedCart = cart.filter((item) => item.id !== productId);
     setCart(updatedCart);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-    console.log("CART",cart)
+  };
+
+  // Add this new function
+  const updateCartItemQuantity = (productId, newQuantity) => {
+    const updatedCart = cart.map(item =>
+      item.id === productId ? { ...item, quantity: newQuantity } : item
+    );
+    setCart(updatedCart);
   };
 
   const refreshData = async () => {
@@ -52,10 +55,10 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const clearCart =() =>{
+  const clearCart = () => {
     setCart([]);
-  }
-  
+  };
+
   useEffect(() => {
     refreshData();
   }, []);
@@ -63,9 +66,20 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
-  
+
   return (
-    <AppContext.Provider value={{ data, isError, cart, addToCart, removeFromCart,refreshData, clearCart  }}>
+    <AppContext.Provider
+      value={{
+        data,
+        isError,
+        cart,
+        addToCart,
+        removeFromCart,
+        updateCartItemQuantity, // Make sure to include this
+        refreshData,
+        clearCart
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

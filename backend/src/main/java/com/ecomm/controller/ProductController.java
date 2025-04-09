@@ -1,5 +1,6 @@
 package com.ecomm.controller;
 
+import com.ecomm.dto.DecrementRequest;
 import com.ecomm.model.Product;
 import com.ecomm.service.ProductService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,12 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -23,10 +27,6 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    @GetMapping("hello")
-    public String greet(HttpServletRequest request) {
-        return "Hello World " + request.getSession().getId();
-    }
 
     @GetMapping("/products")
     public ResponseEntity<List<Product>> getProducts() {
@@ -55,21 +55,28 @@ public class ProductController {
         }
     }
 
-    @GetMapping("product/{productId}/image")
+    @GetMapping("/product/{productId}/image")
     public ResponseEntity<byte[]> getImageByProductId(@PathVariable int productId) {
         try {
-            Product product = productService.getProductById(productId);
-            if (product != null && product.getId() > 0) {
-                return new ResponseEntity<>(product.getImageData(), HttpStatus.OK);
+            byte[] imageData = productService.getProductImage(productId);
+            if (imageData != null) {
+                Product product = productService.getProductById(productId); // Fetch product for metadata
+                logger.info("Serving image of type {} for product ID {}", product.getImageType(), productId);
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(imageData);
             } else {
                 logger.warn("Image for product ID {} not found", productId);
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
             logger.error("Error fetching image for product ID {}", productId, e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+
 
     @PutMapping("/product/{id}")
     public ResponseEntity<String> updateProduct(@PathVariable int id, @RequestPart Product product, @RequestPart MultipartFile imageFile) {
@@ -120,4 +127,14 @@ public class ProductController {
             return new ResponseEntity<>("Error deleting product", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    //For updating stock after processing order, internal usage only
+    @PutMapping("/product/{id}/decrement-stock")
+    public ResponseEntity<?> decrementStock(@PathVariable("id") Long id, @RequestBody Map<String, Integer> request) {
+        int quantity= request.get("quantity");
+        System.out.println(quantity);
+        productService.decrementStock(id, quantity);
+        return ResponseEntity.ok().build();
+    }
+
 }

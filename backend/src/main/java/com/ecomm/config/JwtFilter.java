@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -32,38 +31,48 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        // Extract Authorization header
-
         final String authHeader = request.getHeader("Authorization");
         System.out.println("Incoming Auth Header: " + authHeader);
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("Authorization header is missing or does not start with Bearer.");
             chain.doFilter(request, response);
             return;
         }
 
-        // Extract token
         final String token = authHeader.substring(7);
-        final String email = jwtService.extractEmail(token);
+        System.out.println("Extracted Token: " + token);
 
-        // Validate token and authenticate user
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            if (jwtService.validateToken(token, ((UserPrincipal) userDetails).getUser())) {
-                System.out.println("Extracted roles: " + jwtService.extractRoles(token));
+        try {
+            final String email = jwtService.extractEmail(token);
+            System.out.println("Extracted Email: " + email);
 
-                List<SimpleGrantedAuthority> authorities = jwtService.extractRoles(token).stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                boolean isTokenValid = jwtService.validateToken(token, ((UserPrincipal) userDetails).getUser());
+                System.out.println("Is Token Valid: " + isTokenValid);
 
-                // Create authentication object
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                if (isTokenValid) {
+                    System.out.println("Extracted roles: " + jwtService.extractRoles(token));
 
-                // Set authentication in context
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    List<SimpleGrantedAuthority> authorities = jwtService.extractRoles(token).stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .toList();
+
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    System.out.println("Authentication Token Created: " + authToken);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    System.out.println("Authentication set in SecurityContextHolder.");
+                } else {
+                    System.out.println("Token validation failed.");
+                }
             }
+        } catch (Exception e) {
+            System.err.println("Error processing JWT: " + e.getMessage());
         }
+
         chain.doFilter(request, response);
     }
 }

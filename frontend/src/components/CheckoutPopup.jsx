@@ -1,12 +1,14 @@
 import React from 'react';
 import { Modal, Button, Spinner } from 'react-bootstrap';
+import "../styles/CheckoutPopup.css"
+import PropTypes from 'prop-types';
 
 const CheckoutPopup = ({
-  show,
-  handleClose,
-  cartItems,
-  totalPrice,
-  handleCheckout,
+  show = false,
+  handleClose = () => {},
+  cartItems = [],
+  totalPrice = 0,
+  handleCheckout = () => {},
   loading = false,
 }) => {
   return (
@@ -17,31 +19,36 @@ const CheckoutPopup = ({
 
       <Modal.Body>
         <div className="checkout-items">
-          {cartItems.map((item) => (
-            <div
-              key={item.id}
-              className="checkout-item d-flex mb-3 align-items-start"
-            >
-              <img
-                src={item.imageUrl}
-                alt={item.name}
-                className="cart-item-image"
-                style={{ width: '120px', height: 'auto', marginRight: '15px' }}
-              />
-              <div>
-                <p className="mb-1 fw-bold">{item.name}</p>
-                <p className="mb-1">Quantity: {item.quantity}</p>
-                <p className="mb-0">
-                  Price: ${parseFloat(item.price * item.quantity).toFixed(2)}
-                </p>
-              </div>
-            </div>
-          ))}
-
-          <hr />
-          <h5 className="text-center fw-bold">
-            Total: ${parseFloat(totalPrice).toFixed(2)}
-          </h5>
+          {Array.isArray(cartItems) && cartItems.length > 0 ? (
+            <>
+              {cartItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="checkout-item d-flex mb-3 align-items-start"
+                >
+                  <img
+                    src={item.imageUrl || '/placeholder-image.png'}
+                    alt={item.name || 'Product image'}
+                    className="cart-item-image"
+                    style={{ width: '120px', height: 'auto', marginRight: '15px' }}
+                  />
+                  <div>
+                    <p className="mb-1 fw-bold">{item.name || 'Product'}</p>
+                    <p className="mb-1">Quantity: {item.quantity || 0}</p>
+                    <p className="mb-0">
+                      Price: ₹{parseFloat((item.price || 0) * (item.quantity || 0))}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <hr />
+              <h5 className="text-center fw-bold">
+                Total: ₹{parseFloat(totalPrice)}
+              </h5>
+            </>
+          ) : (
+            <p className="text-center">Your cart is empty</p>
+          )}
         </div>
       </Modal.Body>
 
@@ -52,7 +59,7 @@ const CheckoutPopup = ({
         <Button
           variant="primary"
           onClick={handleCheckout}
-          disabled={cartItems.length === 0 || loading}
+          disabled={!Array.isArray(cartItems) || cartItems.length === 0 || loading}
         >
           {loading ? (
             <>
@@ -73,4 +80,21 @@ const CheckoutPopup = ({
   );
 };
 
-export default CheckoutPopup;
+CheckoutPopup.propTypes = {
+  show: PropTypes.bool,
+  handleClose: PropTypes.func,
+  cartItems: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      name: PropTypes.string,
+      price: PropTypes.number,
+      quantity: PropTypes.number,
+      imageUrl: PropTypes.string,
+    })
+  ),
+  totalPrice: PropTypes.number,
+  handleCheckout: PropTypes.func,
+  loading: PropTypes.bool,
+};
+
+export default CheckoutPopup; 

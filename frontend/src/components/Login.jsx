@@ -29,9 +29,10 @@ const LoginForm = () => {
         try {
             const response = await API.post("/login", values);
             const token = response.data;
-            // wherever you call login():
-            console.log("Received token:", response.data);
-            login(token);
+            const user = response.data.user
+            console.log(user)   
+            // console.log("Received token:", response.data);
+            login(token, user);
             // API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             navigate(from, { state: { message: "Login successful!" } });
             toast.success("Login successful!");

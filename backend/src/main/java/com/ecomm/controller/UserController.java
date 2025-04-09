@@ -15,10 +15,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -47,7 +45,11 @@ public class UserController {
         return ResponseEntity.ok(profile);
     }
 
-
+    @GetMapping("/debug-auth")
+    public ResponseEntity<?> checkAuth() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(auth.getAuthorities());
+    }
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest registerRequest) {
@@ -115,4 +117,17 @@ public class UserController {
             return new ResponseEntity<>("Login failed", HttpStatus.UNAUTHORIZED);
         }
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleException(Exception ex) {
+        StackTraceElement[] stackTrace = ex.getStackTrace();
+        int maxDepth = 10; // modify for deeper debugging
+        for (int i = 0; i < Math.min(stackTrace.length, maxDepth); i++) {
+            System.err.println(stackTrace[i]);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Internal Server Error: " + ex.getMessage());
+    }
+
+
 }

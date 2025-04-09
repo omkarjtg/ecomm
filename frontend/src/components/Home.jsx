@@ -64,9 +64,10 @@ const Home = ({ selectedCategory }) => {
 
   return (
     <div className="home-container">
+
       {/* Display selected category as h2 */}
       <h2 className="category-heading">
-        {selectedCategory ? ` ${selectedCategory}` : ""}
+        {selectedCategory ? ` ${selectedCategory}` : "All Products"}
       </h2>
 
       <div className="grid">
@@ -95,7 +96,7 @@ const Home = ({ selectedCategory }) => {
                     <hr className="hr-line" />
                     <div className="home-cart-price">
                       <h5>
-                        <i className="bi bi-currency-dollar"></i>
+                        <i className="bi bi-currency-rupee"></i>
                         {price}
                       </h5>
                     </div>

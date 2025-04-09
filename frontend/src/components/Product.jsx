@@ -110,7 +110,7 @@ const Product = () => {
         <p className="product-description-title">PRODUCT DESCRIPTION:</p>
         <p className="product-description">{product.description}</p>
 
-        <div className="product-price">{"$" + product.price}</div>
+        <div className="product-price">{"₹" + product.price}</div>
 
         <h6>
           Stock Available: <span className="stock-info">{product.stockQuantity}</span>
