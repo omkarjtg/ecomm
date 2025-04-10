@@ -52,7 +52,7 @@
                         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                         .authorizeHttpRequests(auth -> auth
                                 // Public endpoints
-                                .requestMatchers("/register", "/login").permitAll()
+                                .requestMatchers("/register", "/login", "/forgot-password", "/reset-password").permitAll()
 
                                 .requestMatchers(
                                         "/swagger-ui/**",

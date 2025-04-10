@@ -30,7 +30,7 @@ const LoginForm = () => {
             const response = await API.post("/login", values);
             const token = response.data;
             const user = response.data.user
-            console.log(user)   
+            console.log(user)
             // console.log("Received token:", response.data);
             login(token, user);
             // API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -77,6 +77,16 @@ const LoginForm = () => {
                                 </div>
                                 <ErrorMessage name="password" component="div" className="error" />
                             </div>
+                            <div className="forgot-password">
+                                <button
+                                    type="button"
+                                    className="switch-button"
+                                    onClick={() => navigate("/forgot-password")}
+                                >
+                                    Forgot Password?
+                                </button>
+                            </div>
+
 
                             <button type="submit" className="submit-button" disabled={isSubmitting}>
                                 {isSubmitting ? "Logging in..." : "Login"}

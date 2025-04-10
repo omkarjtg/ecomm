@@ -1,24 +1,34 @@
 package com.ecomm.service;
 
+import com.ecomm.dto.PasswordResetResponse;
+import com.ecomm.model.PasswordResetToken;
 import com.ecomm.model.User;
+import com.ecomm.repo.PasswordResetTokenRepository;
 import com.ecomm.repo.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 @Service
 public class UserService {
-    private final UserRepo repo;
+    private final UserRepo userRepo;
     private final PasswordEncoder passwordEncoder;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public UserService(UserRepo repo, PasswordEncoder passwordEncoder) {
-        this.repo = repo;
+        this.userRepo = repo;
         this.passwordEncoder = passwordEncoder;
     }
+
+    @Autowired
+    private PasswordResetTokenRepository tokenRepo;
 
     @Transactional
     public User saveUser(User user) {
@@ -45,7 +55,7 @@ public class UserService {
             // Hash the password before saving
             user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-            User savedUser = repo.save(user);
+            User savedUser = userRepo.save(user);
             logger.info("User saved successfully: {}", savedUser.getUsername());
             return savedUser;
         } catch (DataIntegrityViolationException e) {
@@ -59,7 +69,7 @@ public class UserService {
 
     public User findByUsername(String username) {
         logger.info("Finding user by username: {}", username);
-        User user = repo.findByUsername(username);
+        User user = userRepo.findByUsername(username);
         if (user != null) {
             logger.info("User found: {}", username);
             return user;
@@ -71,7 +81,7 @@ public class UserService {
 
     public User findByEmail(String email) {
         logger.info("Finding user by email: {}", email);
-        User user = repo.findByEmail(email);
+        User user = userRepo.findByEmail(email);
         if (user != null) {
             logger.info("User found: {}", email);
             return user;
@@ -83,13 +93,13 @@ public class UserService {
 
     public User findByUsernameOrEmail(String identifier) {
         logger.info("Finding user by identifier (username or email): {}", identifier);
-        User user = repo.findByUsername(identifier);
+        User user = userRepo.findByUsername(identifier);
         if (user != null) {
             logger.info("User found by username: {}", identifier);
             return user;
         }
 
-        user = repo.findByEmail(identifier);
+        user = userRepo.findByEmail(identifier);
         if (user != null) {
             logger.info("User found by email: {}", identifier);
             return user;
@@ -98,4 +108,5 @@ public class UserService {
         logger.warn("User not found with identifier: {}", identifier);
         return null;
     }
+
 }

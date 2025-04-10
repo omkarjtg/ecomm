@@ -13,6 +13,8 @@ import UpdateProduct from "./components/UpdateProduct";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import LoginForm from "./components/Login";
+import ForgotPasswordForm from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 import RegisterForm from "./components/SignUp";
 import Profile from "./components/Profile";
 import Forbidden from "./components/Forbidden";
@@ -102,7 +104,9 @@ function App() {
             />
           }
         />
+        <Route path="/forgot-password" element={<ForgotPasswordForm />} />
         <Route path="/product/:id" element={<Product />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/signup" element={<RegisterForm />} />
         <Route path="/orders" element={<Orders />} />

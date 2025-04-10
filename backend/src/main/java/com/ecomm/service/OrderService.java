@@ -13,6 +13,7 @@ import com.ecomm.repo.UserRepo;
 import com.razorpay.RazorpayException;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -27,6 +28,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
+
+    @Autowired
+    private EmailService emailService;
 
     private final OrderRepository orderRepository;
     private final ProductRepo productRepository;
@@ -83,6 +87,8 @@ public class OrderService {
             product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
             productRepository.save(product);
         }
+
+        emailService.sendOrderConfirmation(user.getEmail(), user.getUsername(), order.getId(), total);
 
         return orderRepository.save(order);
     }

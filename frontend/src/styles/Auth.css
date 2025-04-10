@@ -224,3 +224,18 @@
     cursor: pointer;
     font-size: 1em;
 }
+
+.forgot-password {
+    text-align: right;
+    margin-top: -1rem;
+    margin-bottom: 1rem;
+}
+
+.forgot-password .switch-button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+            

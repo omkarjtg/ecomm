@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            background: linear-gradient(135deg, #1e88e5, #0d47a1);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px;
+        }
+        .order-summary {
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .order-id {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e88e5;
+        }
+        .total-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2e7d32;
+            margin: 15px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f1f1f1;
+            color: #666;
+            font-size: 12px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #1e88e5;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+        .divider {
+            height: 1px;
+            background: #eee;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="header">
+        <h1>Thank you for your order, {{username}}!</h1>
+    </div>
+
+    <div class="content">
+        <p>We've received your order and it's being processed. Here's your order confirmation:</p>
+
+        <div class="order-summary">
+            <div class="order-id">Order #{{orderId}}</div>
+            <div class="total-amount">Total: ₹{{total}}</div>
+            <a href="https://yourapp.com/orders/{{orderId}}" class="button">View Order Details</a>
+        </div>
+
+        <div class="divider"></div>
+
+        <p><strong>What's next?</strong></p>
+        <ul>
+            <li>You'll receive a shipping confirmation email once your order is on its way</li>
+            <li>Estimated delivery: 3-5 business days</li>
+            <li>Need help? Reply to this email or contact our support team</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        &copy; 2025 Ecomm. All rights reserved.<br>
+        <small>123 Main Street, City, Country</small>
+    </div>
+</div>
+</body>
+</html>

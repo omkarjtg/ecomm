@@ -1,13 +1,18 @@
 package com.ecomm.controller;
 
-import com.ecomm.dto.LoginRequest;
-import com.ecomm.dto.ProfileDTO;
-import com.ecomm.dto.RegisterRequest;
+import com.ecomm.dto.*;
+import com.ecomm.model.PasswordResetToken;
 import com.ecomm.model.Role;
 import com.ecomm.model.User;
+import com.ecomm.repo.PasswordResetTokenRepository;
+import com.ecomm.repo.UserRepo;
+import com.ecomm.service.EmailService;
 import com.ecomm.service.JwtService;
+import com.ecomm.service.PasswordResetService;
 import com.ecomm.service.UserService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +21,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.UUID;
 
 
 @RestController
@@ -30,6 +40,22 @@ public class UserController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private UserRepo userRepo;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
@@ -128,6 +154,5 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Internal Server Error: " + ex.getMessage());
     }
-
 
 }

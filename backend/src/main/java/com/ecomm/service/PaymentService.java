@@ -27,7 +27,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PaymentService {
 
-    private final PaymentProcessingService paymentProcessingService;
     private final OrderRepository orderRepository;
 
     private final RazorpayClient razorpayClient;
