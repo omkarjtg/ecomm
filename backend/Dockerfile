@@ -17,3 +17,4 @@ COPY backend/wait-for-mysql.sh wait-for-mysql.sh
 RUN chmod +x wait-for-mysql.sh
 
 ENTRYPOINT ["./wait-for-mysql.sh"]
+CMD ["java", "-jar", "app.jar"]
