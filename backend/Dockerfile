@@ -13,8 +13,9 @@ FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-# 🔥 Add netcat installation here (this is the stage that actually runs)
-RUN apt-get update && apt-get install -y netcat
+RUN apt-get update && apt-get install -y netcat-openbsd
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
 
 COPY --from=builder /app/target/*.jar app.jar
 COPY backend/wait-for-mysql.sh wait-for-mysql.sh
