@@ -1,13 +1,19 @@
-FROM openjdk:17-jdk-slim
+# Stage 1: Build
+FROM maven:3.9.4-eclipse-temurin-17 as builder
+
+WORKDIR /app
+COPY backend/pom.xml .
+COPY backend/src ./src
+
+RUN mvn clean package -DskipTests
+
+# Stage 2: Run
+FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-# Install mysql client
-RUN apt-get update && apt-get install -y default-mysql-client
-
-# Copy app and wait script
-COPY target/Ecomm-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /app/target/*.jar app.jar
 COPY backend/wait-for-mysql.sh wait-for-mysql.sh
 RUN chmod +x wait-for-mysql.sh
 
-ENTRYPOINT ["./wait-for-mysql.sh", "mysql-db", "java", "-jar", "app.jar"]
+ENTRYPOINT ["./wait-for-mysql.sh"]
