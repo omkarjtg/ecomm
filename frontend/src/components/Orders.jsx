@@ -123,7 +123,7 @@ const Orders = () => {
       {orders.length === 0 ? (
         <div className="no-orders">
           <p>No orders found for your account</p>
-          <button className="btn-primary" onClick={() => (window.location.href = "/products")}>
+          <button className="btn-primary" onClick={() => (window.location.href = "/")}>
             Browse Products
           </button>
         </div>
