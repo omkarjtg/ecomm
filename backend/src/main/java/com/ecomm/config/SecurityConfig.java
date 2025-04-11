@@ -102,7 +102,8 @@ public CorsConfigurationSource corsConfigurationSource() {
     config.setAllowedOrigins(List.of(
         "https://ecomm-gfc1pybjr-omkar-kumbhars-projects.vercel.app",
         "https://ecomm-git-master-omkar-kumbhars-projects.vercel.app",
-        "https://ecomm-omkar-kumbhars-projects.vercel.app"
+        "https://ecomm-omkar-kumbhars-projects.vercel.app",
+        "https://ecomm-eight-bice.vercel.app"
     ));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
