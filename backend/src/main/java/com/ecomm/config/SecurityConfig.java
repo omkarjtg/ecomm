@@ -96,19 +96,24 @@
 
 
 
-            @Bean
-            public CorsConfigurationSource corsConfigurationSource() {
-                CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:5173"));
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
-                config.setExposedHeaders(List.of("Authorization"));
-                config.setAllowCredentials(true);
+           @Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOrigins(List.of(
+        "https://ecomm-gfc1pybjr-omkar-kumbhars-projects.vercel.app",
+        "https://ecomm-git-master-omkar-kumbhars-projects.vercel.app",
+        "https://ecomm-omkar-kumbhars-projects.vercel.app"
+    ));
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(List.of("*"));
+    config.setAllowCredentials(true);
+    config.setExposedHeaders(List.of("Authorization"));
 
-                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                source.registerCorsConfiguration("/**", config);
-                return source;
-            }
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+}
+
 
             @Bean
             public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
