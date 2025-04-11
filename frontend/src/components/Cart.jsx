@@ -326,7 +326,7 @@ const Cart = () => {
 
       {cartItems.length === 0 ? (
         <div className="empty-cart">
-          <img src="/src/assets/empty-cart.svg" alt="Empty cart" />
+          <img src="/empty-cart.svg" alt="Empty cart" />
           <p>Your cart is empty</p>
           <button
             className="btn-primary"
