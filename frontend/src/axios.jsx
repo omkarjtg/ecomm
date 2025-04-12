@@ -1,8 +1,8 @@
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const API = axios.create({
-  // baseURL: "https://ecomm-txs3.onrender.com"
-  baseURL: "http://localhost:8080"
+  baseURL: BASE_URL
 
   // withCredentials: true,
 });
