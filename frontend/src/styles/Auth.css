@@ -15,6 +15,31 @@
 
 }
 
+.divider {
+    text-align: center;
+    margin: 1rem 0;
+    color: #aaa;
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    position: absolute;
+    height: 1px;
+    background: #ccc;
+    top: 50%;
+    width: 40%;
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
 /* Container for Auth Forms (Login/Signup) */
 .auth-container {
     position: relative;
@@ -202,7 +227,7 @@
     cursor: pointer;
     color: #555;
 }
-    
+
 .toggle-password {
     margin-left: 8px;
     background: none;
@@ -238,4 +263,3 @@
     cursor: pointer;
     font-size: 0.9em;
 }
-            

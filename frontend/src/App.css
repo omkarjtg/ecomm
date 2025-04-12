@@ -135,12 +135,12 @@ body {
 }
 
 /* Button Styles */
-.btn {
+/* .btn {
   padding: 8px 16px;
   border-radius: 4px;
   font-weight: 500;
   transition: all 0.2s ease;
-}
+} */
 
 .btn-primary {
   background-color: var(--primary-blue);

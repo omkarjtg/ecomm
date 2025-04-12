@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import AppContext from "../context/Context";
-import { useAuth } from "../context/AuthContext"; // Added import for useAuth
+import { useAuth } from "../context/AuthContext";
 import API from "../axios";
 import "../styles/Product.css";
 import Swal from "sweetalert2";
@@ -11,9 +11,10 @@ import "react-toastify/dist/ReactToastify.css";
 const Product = () => {
   const { id } = useParams();
   const { addToCart, removeFromCart, refreshData } = useContext(AppContext);
-  const { isAdmin } = useAuth(); // Added useAuth to get isAdmin status
+  const { isAdmin } = useAuth();
   const [product, setProduct] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +27,8 @@ const Product = () => {
         }
       } catch (error) {
         console.error("Error fetching product:", error);
+        setError("Failed to load product");
+        toast.error("Failed to load product");
       }
     };
 
@@ -34,24 +37,34 @@ const Product = () => {
         const response = await API.get(`/api/product/${id}/image`, {
           responseType: "blob",
         });
-        setImageUrl(URL.createObjectURL(response.data));
+        const url = URL.createObjectURL(response.data);
+        setImageUrl(url);
+        return url;
       } catch (error) {
         console.error("Error fetching image:", error);
+        return "";
       }
     };
 
     fetchProduct();
-  }, [id]);
+
+    // Cleanup image URL
+    return () => {
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, [id, imageUrl]);
 
   const deleteProduct = async () => {
     if (!isAdmin) {
-      toast.error("Forbidden: Admin access required to delete products");
+      toast.error("Forbidden: Admin access required");
       return;
     }
 
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      text: "This action cannot be undone!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -62,64 +75,76 @@ const Product = () => {
     if (result.isConfirmed) {
       try {
         await API.delete(`/api/product/${id}`);
-        removeFromCart(id);
-        toast.info("Product deleted successfully");
+        removeFromCart(Number(id));
+        toast.success("Product deleted successfully");
         refreshData();
         navigate("/");
       } catch (error) {
         console.error("Error deleting product:", error);
-        Swal.fire("Error!", "Something went wrong while deleting.", "error");
+        toast.error("Failed to delete product");
       }
     }
   };
 
   const handleEditClick = () => {
     if (!isAdmin) {
-      toast.error("Forbidden: Admin access required to edit products");
+      toast.error("Forbidden: Admin access required");
       return;
     }
     navigate(`/product/update/${id}`);
   };
 
   const handleAddToCart = () => {
-    addToCart(product);
-    toast("Added to Cart!");
+    if (product) {
+      addToCart(product);
+      toast.success("Added to Cart!");
+    }
   };
+
+  if (error) {
+    return <h2 className="text-center" style={{ padding: "10rem" }}>{error}</h2>;
+  }
 
   if (!product) {
     return <h2 className="text-center" style={{ padding: "10rem" }}>Loading...</h2>;
   }
 
   return (
-    <div className="containers">
-      {/* Left Column - Product Image */}
-      <img className="left-column-img" src={imageUrl} alt={product.imageName} />
+    <div className="product-container">
+      {/* Product Image */}
+      <img
+        className="product-image"
+        src={imageUrl || "/placeholder.png"}
+        alt={product.name}
+      />
 
-      {/* Right Column - Product Details */}
-      <div className="right-column">
+      {/* Product Details */}
+      <div className="product-details">
         <div className="product-meta">
           <span>{product.category}</span>
-          <p>
-            <strong>Listed:</strong> <i>{new Date(product.releaseDate).toLocaleDateString()}</i>
-          </p>
+          <span>
+            Listed: {new Date(product.releaseDate).toLocaleDateString()}
+          </span>
         </div>
 
         <h1 className="product-title">{product.name}</h1>
-        <i className="product-brand">{product.brand}</i>
+        <p className="product-brand">{product.brand}</p>
 
-        <p className="product-description-title">PRODUCT DESCRIPTION:</p>
+        <p className="product-description-title">Description</p>
         <p className="product-description">{product.description}</p>
 
-        <div className="product-price">{"₹" + product.price}</div>
+        <p className="product-price">₹{product.price}</p>
 
-        <h6>
-          Stock Available: <span className="stock-info">{product.stockQuantity}</span>
-        </h6>
+        <p className="product-stock">
+          Stock: {product.stockQuantity > 0 ? product.stockQuantity : "Out of Stock"}
+        </p>
 
         {/* Action Buttons */}
-        <div className="button-group">
+        <div className="product-buttons">
           <button
-            className={`btn-primary ${!product.productAvailable ? "disabled-btn" : ""}`}
+            className={`product-button product-button--primary ${
+              !product.productAvailable ? "product-button--disabled" : ""
+            }`}
             onClick={handleAddToCart}
             disabled={!product.productAvailable}
           >
@@ -127,12 +152,18 @@ const Product = () => {
           </button>
 
           {isAdmin && (
-            <button className="btn-warning" onClick={handleEditClick}>
+            <button
+              className="product-button product-button--warning"
+              onClick={handleEditClick}
+            >
               Edit
             </button>
           )}
           {isAdmin && (
-            <button className="btn-danger" onClick={deleteProduct}>
+            <button
+              className="product-button product-button--danger"
+              onClick={deleteProduct}
+            >
               Delete
             </button>
           )}

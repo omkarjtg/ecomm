@@ -7,6 +7,7 @@ import "../styles/Auth.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import GoogleLoginButton from "./GoogleLoginButton";
 
 const SignupForm = () => {
     const { login } = useAuth();
@@ -103,6 +104,10 @@ const SignupForm = () => {
                         </Form>
                     )}
                 </Formik>
+                <div className="divider">or</div>
+                <GoogleLoginButton />
+                
+
             </div>
         </div>
     );

@@ -9,11 +9,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -67,46 +69,42 @@ public class UserService {
         }
     }
 
-    public User findByUsername(String username) {
+    public Optional<User> findByUsername(String username) {
         logger.info("Finding user by username: {}", username);
-        User user = userRepo.findByUsername(username);
-        if (user != null) {
-            logger.info("User found: {}", username);
-            return user;
-        } else {
-            logger.warn("User not found with username: {}", username);
-            return null;
-        }
+        return userRepo.findByUsername(username)
+                .map(user -> {
+                    logger.info("User found by username: {}", username);
+                    return user;
+                })
+                .or(() -> {
+                    logger.warn("User not found with username: {}", username);
+                    return Optional.empty();
+                });
     }
 
-    public User findByEmail(String email) {
+    public Optional<User> findByEmail(String email) {
         logger.info("Finding user by email: {}", email);
-        User user = userRepo.findByEmail(email);
-        if (user != null) {
-            logger.info("User found: {}", email);
-            return user;
-        } else {
-            logger.warn("User not found with email: {}", email);
-            return null;
-        }
+        return userRepo.findByEmail(email)
+                .map(user -> {
+                    logger.info("User found by email: {}", email);
+                    return user;
+                })
+                .or(() -> {
+                    logger.warn("User not found with email: {}", email);
+                    return Optional.empty();
+                });
     }
 
     public User findByUsernameOrEmail(String identifier) {
-        logger.info("Finding user by identifier (username or email): {}", identifier);
-        User user = userRepo.findByUsername(identifier);
-        if (user != null) {
-            logger.info("User found by username: {}", identifier);
-            return user;
-        }
-
-        user = userRepo.findByEmail(identifier);
-        if (user != null) {
-            logger.info("User found by email: {}", identifier);
-            return user;
-        }
-
-        logger.warn("User not found with identifier: {}", identifier);
-        return null;
+        logger.debug("Checking username: {}", identifier);
+        return userRepo.findByUsername(identifier)
+                .or(() -> {
+                    logger.debug("Username not found, checking email: {}", identifier);
+                    return userRepo.findByEmail(identifier);
+                })
+                .orElseThrow(() -> {
+                    logger.warn("User not found with identifier: {}", identifier);
+                    return new UsernameNotFoundException("User not found with username or email: " + identifier);
+                });
     }
-
 }

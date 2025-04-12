@@ -4,53 +4,56 @@ import API from "../axios";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
+
         if (token && token !== "undefined") {
-            // API.defaults.headers.common["Authorization"] = `Bearer ${token}`;    
-        
+            // Fetch actual user profile from backend
             API.get("/profile")
                 .then(res => {
-                    setUser(res.data);
+                    const userData = res.data;
+                    setUser(userData);
                     setIsLoggedIn(true);
-                    setIsAdmin(res.data.roles?.includes('ADMIN') || false);
+                    setIsAdmin(userData.roles?.includes("ADMIN") || false);
                 })
                 .catch(err => {
-                    console.error("Failed to load profile", err);
-                    // logout();
+                    console.error("❌ Failed to load profile:", err);
+                    logout();
                 });
         }
     }, []);
 
-    const login = async (token, user) => {
-        if (!token) {
-            console.error("No token received for login.");
-            return;
-        }
+    const login = async (token) => {
+        if (!token) return console.error("❌ No token received at login.");
 
         localStorage.setItem("token", token);
-        localStorage.setItem("user", user);
-        console.log(user) 
-        // API.defaults.headers.common["Authorization"] = `Bearer ${token}`;    
         setIsLoggedIn(true);
 
-     
         try {
-            const decodedToken = JSON.parse(atob(token.split('.')[1])); // Decode JWT payload
-            setUser({ email: decodedToken.sub }); // Example: set minimal user data
-            setIsAdmin(decodedToken.role === 'ADMIN' || decodedToken.roles?.includes('ADMIN') || false);
-        } catch (err) {
-            console.error("Failed to decode token", err);
-      
-        }
-    };
+            const decoded = JSON.parse(atob(token.split(".")[1]));
+            const minimalUser = {
+                email: decoded.sub,
+                roles: decoded.roles || [],
+            };
+            setUser(minimalUser);
+            setIsAdmin(minimalUser.roles.includes("ADMIN"));
 
-    const hasRole = (role) => {
-        return user?.roles?.includes(role) || false;
+            // Optional: Immediately fetch full profile
+            API.get("/profile")
+                .then(res => {
+                    setUser(res.data);
+                    setIsAdmin(res.data.roles?.includes("ADMIN") || false);
+                })
+                .catch(console.error);
+
+        } catch (err) {
+            console.error("❌ Failed to decode JWT:", err);
+            logout();
+        }
     };
 
     const logout = () => {
@@ -58,6 +61,10 @@ export const AuthProvider = ({ children }) => {
         setIsLoggedIn(false);
         setUser(null);
         setIsAdmin(false);
+    };
+
+    const hasRole = (role) => {
+        return user?.roles?.includes(role) || false;
     };
 
     return (

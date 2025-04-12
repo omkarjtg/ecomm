@@ -1,24 +1,34 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import "../styles/Navbar.css";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import * as bootstrap from "bootstrap";
+import { Collapse } from "bootstrap";
 import API from "../axios";
+import "react-toastify/dist/ReactToastify.css";
+import "../styles/Navbar.css";
+import * as bootstrap from "bootstrap";
 
 const Navbar = ({ onSelectCategory, selectedCategory }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const debounceRef = useRef(null);
   const [input, setInput] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [noResults, setNoResults] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
   const userMenuRef = useRef(null);
   const dropdownRef = useRef(null);
+  const collapseRef = useRef(null);
+
   const { isLoggedIn, logout } = useAuth();
+
+  useEffect(() => {
+    const collapseEl = document.getElementById("navbarSupportedContent");
+    if (collapseEl) new Collapse(collapseEl, { toggle: false });
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -36,19 +46,26 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
     navigate("/");
   };
 
-  const handleChange = async (value) => {
-    setInput(value);
-    if (!value.trim()) {
+  useEffect(() => {
+    if (input.trim()) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+
+      debounceRef.current = setTimeout(() => {
+        performSearch(input);
+      }, 500); // Adjust delay (ms) as needed
+    } else {
       setSearchResults([]);
       setNoResults(false);
-      return;
     }
 
+    return () => clearTimeout(debounceRef.current);
+  }, [input]);
+
+
+  const performSearch = async (value) => {
     try {
-   
       const response = await API.get(`/api/products/search?keyword=${value}`);
       const data = response.data;
-
       if (data.length > 0) {
         setSearchResults(data);
         setNoResults(false);
@@ -57,11 +74,12 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
         setNoResults(true);
       }
     } catch (error) {
-      console.error("Error fetching search results:", error);
+      console.error("Search failed:", error);
       setSearchResults([]);
       setNoResults(true);
     }
   };
+
 
   const handleKeyDown = (e) => {
     if (searchResults.length === 0) return;
@@ -86,43 +104,47 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
   };
 
   const categories = [
-    "Laptops",
-    "Headphones",
-    "Mobile Phones",
-    "Television",
-    "Electronics",
-    "Toys",
-    "Clothing",
-    "Healthcare and Cosmetics",
+    "Laptops", "Headphones", "Mobile Phones", "Television",
+    "Electronics", "Toys", "Clothing", "Healthcare and Cosmetics",
   ];
 
   return (
     <header>
       <nav className="navbar navbar-expand-lg fixed-top">
         <div className="container-fluid">
-          <a className="navbar-brand" href="/">Ecomm</a>
+          <Link className="navbar-brand" to="/">Ecomm</Link>
+
           <button
             className="navbar-toggler"
             type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
+            onClick={() => {
+              if (collapseRef.current) {
+                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseRef.current);
+                bsCollapse.toggle();
+              }
+            }}
             aria-controls="navbarSupportedContent"
             aria-expanded="false"
             aria-label="Toggle navigation"
           >
-            <span className="navbar-toggler-icon"></span>
+            <span className="navbar-toggler-icon" />
           </button>
 
-          <div className="collapse navbar-collapse" id="navbarSupportedContent">
+
+          <div
+            ref={collapseRef}
+            className="collapse navbar-collapse"
+            id="navbarSupportedContent"
+          >
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link active" href="/">Home</a>
+                <Link className="nav-link active" to="/">Home</Link>
               </li>
+
               <li className="nav-item dropdown">
                 <button
                   className="nav-link dropdown-toggle"
                   ref={dropdownRef}
-                  role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
@@ -141,7 +163,7 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
                   ))}
                 </ul>
               </li>
-              {/* Display selected category */}
+
               {selectedCategory && (
                 <li className="nav-item">
                   <span className="nav-link">{selectedCategory}</span>
@@ -149,23 +171,24 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
               )}
             </ul>
 
-            {/* Search */}
-            <div className="search-container" style={{ position: "relative" }}>
+            {/* Search bar */}
+            <div className="search-container position-relative">
               <div className="input-group">
                 <span className="input-group-text">
-                  <i className="bi bi-search"></i>
+                  <i className="bi bi-search" />
                 </span>
                 <input
-                  className="form-control"
+                  className="form-control search-input"
                   type="search"
                   placeholder="Search"
                   value={input}
-                  onChange={(e) => handleChange(e.target.value)}
+                  onChange={(e) => setInput(e.target.value)}
                   onFocus={() => setShowSearchResults(true)}
                   onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
                   onKeyDown={handleKeyDown}
                 />
               </div>
+
               {showSearchResults && (
                 <ul className="search-dropdown list-group">
                   {searchResults.length > 0 ? (
@@ -180,17 +203,17 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
                       </li>
                     ))
                   ) : (
-                    <p className="no-results-message">No Product Found</p>
+                    noResults && <p className="no-results-message">No Product Found</p>
                   )}
                 </ul>
               )}
             </div>
 
-            {/* Auth Buttons */}
+            {/* Auth Section */}
             <div className="d-flex align-items-center cart">
-              <a href="/cart" className="nav-link">
+              <Link to="/cart" className="nav-link">
                 <i className="bi bi-cart me-2">Cart</i>
-              </a>
+              </Link>
 
               {isLoggedIn ? (
                 <div className="position-relative" ref={userMenuRef}>
@@ -198,13 +221,16 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
                     className="bi bi-person-circle user-icon"
                     onClick={() => setShowUserMenu((prev) => !prev)}
                     style={{ fontSize: "1.8rem", cursor: "pointer", marginLeft: "10px" }}
-                  ></i>
+                  />
                   {showUserMenu && (
                     <div className="user-menu">
                       <ul>
                         <li onClick={() => navigate("/profile")}>Profile</li>
                         <li onClick={() => navigate("/orders")}>My Orders</li>
-                        <li style={{ backgroundColor: "#d55360" }} onClick={handleLogout}>
+                        <li
+                          style={{ backgroundColor: "#d55360" }}
+                          onClick={handleLogout}
+                        >
                           Logout
                         </li>
                       </ul>

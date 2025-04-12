@@ -1,16 +1,24 @@
 import { jwtDecode } from 'jwt-decode';
 
 export const getValidToken = () => {
-    const token = localStorage.getItem("token")?.trim();
-    if (!token || typeof token !== 'string') {
-        return null;
-    }
+    const raw = localStorage.getItem("token");
+    if (!raw || typeof raw !== "string") return null;
 
+    const token = raw.trim();
     try {
         const decoded = jwtDecode(token);
-        if (!decoded?.userId) {
+
+        // Optional: Check token expiration
+        if (decoded?.exp && Date.now() >= decoded.exp * 1000) {
+            console.warn("JWT expired");
             return null;
         }
+
+        // Basic sanity check (you can add more if needed)
+        if (!decoded || typeof decoded !== "object" || !("userId" in decoded)) {
+            return null;
+        }
+
         return token;
     } catch {
         return null;
@@ -22,7 +30,8 @@ export const getUserIdFromToken = () => {
     if (!token) return null;
 
     try {
-        return jwtDecode(token).userId;
+        const decoded = jwtDecode(token);
+        return decoded?.userId || null;
     } catch {
         return null;
     }

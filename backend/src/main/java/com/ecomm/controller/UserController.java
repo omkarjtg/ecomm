@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -87,8 +88,8 @@ public class UserController {
         }
 
         // Check if email already exists
-        User existingUser = userService.findByEmail(registerRequest.getEmail());
-        if (existingUser != null) {
+        Optional<User> existingUser = userService.findByEmail(registerRequest.getEmail());
+        if (existingUser.isPresent()) {
             System.out.println("Email already in use: " + registerRequest.getEmail());
             return new ResponseEntity<>("Email already in use", HttpStatus.BAD_REQUEST);
         }

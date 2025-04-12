@@ -48,7 +48,7 @@ export const AppProvider = ({ children }) => {
 
   const refreshData = async () => {
     try {
-      const response = await API.get("api/products");
+      const response = await API.get("/api/products");
       setData(response.data);
     } catch (error) {
       setIsError(error.message);
@@ -75,7 +75,7 @@ export const AppProvider = ({ children }) => {
         cart,
         addToCart,
         removeFromCart,
-        updateCartItemQuantity, // Make sure to include this
+        updateCartItemQuantity,
         refreshData,
         clearCart
       }}

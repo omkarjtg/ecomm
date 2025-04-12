@@ -4,8 +4,11 @@ import com.ecomm.service.JwtService;
 import com.ecomm.model.UserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,12 +17,16 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import io.jsonwebtoken.JwtException;
+
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
@@ -31,48 +38,73 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
-        System.out.println("Incoming Auth Header: " + authHeader);
+        String token = extractToken(request);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("Authorization header is missing or does not start with Bearer.");
+        if (token == null) {
+            logger.debug("No valid JWT found in Authorization header or token cookie.");
             chain.doFilter(request, response);
             return;
         }
 
-        final String token = authHeader.substring(7);
-        System.out.println("Extracted Token: " + token);
-
         try {
-            final String email = jwtService.extractEmail(token);
-            System.out.println("Extracted Email: " + email);
+            String email = jwtService.extractEmail(token);
+            if (email == null) {
+                logger.warn("No email found in JWT.");
+                chain.doFilter(request, response);
+                return;
+            }
 
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-                boolean isTokenValid = jwtService.validateToken(token, ((UserPrincipal) userDetails).getUser());
-                System.out.println("Is Token Valid: " + isTokenValid);
 
-                if (isTokenValid) {
-                    System.out.println("Extracted roles: " + jwtService.extractRoles(token));
+                if (!(userDetails instanceof UserPrincipal userPrincipal)) {
+                    logger.error("UserDetails is not an instance of UserPrincipal.");
+                    chain.doFilter(request, response);
+                    return;
+                }
 
+                if (jwtService.validateToken(token, userPrincipal.getUser())) {
                     List<SimpleGrantedAuthority> authorities = jwtService.extractRoles(token).stream()
                             .map(SimpleGrantedAuthority::new)
                             .toList();
 
                     UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                            new UsernamePasswordAuthenticationToken(userPrincipal, null, authorities);
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    System.out.println("Authentication Token Created: " + authToken);
+
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("Authentication set in SecurityContextHolder.");
+                    logger.debug("Authentication set for user: {}", email);
                 } else {
-                    System.out.println("Token validation failed.");
+                    logger.warn("Invalid or expired JWT for user: {}", email);
                 }
             }
+        } catch (JwtException e) {
+            logger.error("JWT processing error: {}", e.getMessage());
         } catch (Exception e) {
-            System.err.println("Error processing JWT: " + e.getMessage());
+            logger.error("Unexpected error in JWT filter: {}", e.getMessage());
         }
 
         chain.doFilter(request, response);
+    }
+
+    private String extractToken(HttpServletRequest request) {
+        // Check Authorization header first
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            logger.debug("JWT found in Auth header");
+            return authHeader.substring(7);
+        }
+
+        // Fallback to cookie
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("token".equals(cookie.getName())) {
+                    logger.debug("JWT found in token cookie.");
+                    return cookie.getValue();
+                }
+            }
+        }
+
+        return null;
     }
 }

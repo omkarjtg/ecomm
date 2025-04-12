@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,22 +37,20 @@ public class PasswordResetService {
     @Transactional
     public PasswordResetResponse initiatePasswordReset(String email) {
         // Find user by email
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isEmpty()) {
             logger.warn("Password reset requested for non-existent email: {}", email);
             return new PasswordResetResponse(false, null, null);
         }
 
+        User user = userOptional.get();
 
-        // Delete existing tokens in a separate operation with flush
         tokenRepository.deleteByUserId(user.getId());
-        tokenRepository.flush(); // Ensure deletion completes
+        tokenRepository.flush();
 
-        // Generate a new token
         String token = UUID.randomUUID().toString();
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(TOKEN_EXPIRY_MINUTES);
 
-        // Clean up old tokens
         tokenRepository.deleteByUser(user);
 
         // Save new token
@@ -73,11 +72,11 @@ public class PasswordResetService {
             logger.error("Password reset attempted with empty token");
             throw new IllegalArgumentException("Token cannot be empty");
         }
-        String trimmedToken = token.trim(); // New variable for trimmed value
+        String trimmedToken = token.trim();
 
         PasswordResetToken resetToken = tokenRepository.findByToken(trimmedToken)
                 .orElseThrow(() -> {
-                    logger.error("Invalid password reset token: {}", trimmedToken); // Use trimmedToken
+                    logger.error("Invalid password reset token: {}", trimmedToken);
                     return new RuntimeException("Invalid token");
                 });
 

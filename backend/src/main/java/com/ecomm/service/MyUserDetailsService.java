@@ -19,17 +19,11 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
-        User user = userRepo.findByUsername(identifier);
+        User user = userRepo.findByUsername(identifier)
+                .or(() -> userRepo.findByEmail(identifier))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + identifier));
 
-        if (user == null) {
-            user = userRepo.findByEmail(identifier);
-        }
-
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with username or email: " + identifier);
-        }
-
-        return new UserPrincipal(user); // ✅ Return UserPrincipal, not Spring Security's User
+        return new UserPrincipal(user); // ✅ Return UserPrincipal
     }
 
 }
