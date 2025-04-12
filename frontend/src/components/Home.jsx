@@ -72,7 +72,7 @@ const Home = ({ selectedCategory }) => {
 
       <div className="grid">
         {filteredProducts.length === 0 ? (
-          <h2 className="no-products">No Products Available</h2>
+          <h2 className="no-products">Loading Products...</h2>
         ) : (
           filteredProducts.map((product) => {
             const { id, brand, name, price, productAvailable, imageUrl } =
