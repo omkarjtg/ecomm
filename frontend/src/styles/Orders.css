@@ -76,7 +76,7 @@
     width: 100%;
 }
 
-.product-image {
+.order-product-image {
     width: 140px;
     height: 140px;
     object-fit: contain;

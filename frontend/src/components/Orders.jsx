@@ -152,7 +152,7 @@ const Orders = () => {
                       <img
                         src={imageUrls[item.productId] || "/placeholder-image.png"}
                         alt={item.productName}
-                        className="product-image"
+                        className="order-product-image"
                       />
                       <div className="item-details">
                         <span className="product-name">{item.productName}</span>
