@@ -10,7 +10,6 @@ import "../styles/Cart.css";
 import CheckoutPopup from "./CheckoutPopup";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-// import LoadingSpinner from "./LoadingSpinner";
 import CartItem from "./CartItem";
 import { Spinner } from "react-bootstrap";
 

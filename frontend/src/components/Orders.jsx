@@ -3,9 +3,9 @@ import { useAuth } from "../context/AuthContext";
 import API from "../axios";
 import "../styles/Orders.css";
 import { toast } from "react-toastify";
-import LoadingSpinner from "./LoadingSpinner";
 import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
+import { Spinner } from "react-bootstrap";
 
 const Orders = () => {
   const { isLoggedIn } = useAuth();
@@ -101,7 +101,7 @@ const Orders = () => {
     }
   };
 
-  if (loading) return <LoadingSpinner message="Loading your orders..." />;
+  if (loading) return <Spinner message="Loading your orders..." />;
 
   if (error) {
     return (
