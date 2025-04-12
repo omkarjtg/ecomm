@@ -4,6 +4,7 @@ import API from "../axios";
 import AppContext from "../context/Context";
 import unplugged from "../assets/unplugged.png";
 import "../styles/Home.css";
+import { Spinner } from "react-bootstrap";
 
 const Home = ({ selectedCategory }) => {
   const { data, isError, addToCart, refreshData } = useContext(AppContext);
@@ -72,7 +73,10 @@ const Home = ({ selectedCategory }) => {
 
       <div className="grid">
         {filteredProducts.length === 0 ? (
-          <h2 className="no-products">Loading Products...</h2>
+          <div className="no-products">
+            <h2 className="me-4">Loading Products...   </h2>
+            <Spinner animation="border" variant="primary" />
+          </div>
         ) : (
           filteredProducts.map((product) => {
             const { id, brand, name, price, productAvailable, imageUrl } =

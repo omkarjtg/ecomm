@@ -1,7 +1,7 @@
 import { jwtDecode } from 'jwt-decode';
 
 export const getValidToken = () => {
-    const token = localStorage.getItem("jwtToken")?.trim();
+    const token = localStorage.getItem("token")?.trim();
     if (!token || typeof token !== 'string') {
         return null;
     }
