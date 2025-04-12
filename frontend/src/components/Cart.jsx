@@ -10,8 +10,9 @@ import "../styles/Cart.css";
 import CheckoutPopup from "./CheckoutPopup";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-import LoadingSpinner from "./LoadingSpinner";
+// import LoadingSpinner from "./LoadingSpinner";
 import CartItem from "./CartItem";
+import { Spinner } from "react-bootstrap";
 
 // Utility function to get and validate token
 const getValidToken = () => {
@@ -305,7 +306,7 @@ const Cart = () => {
   }
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading your cart..." />;
+    return <Spinner message="Loading your cart..." />;
   }
 
   return (
