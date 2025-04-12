@@ -3,10 +3,9 @@ import { useContext, useEffect, useState } from "react";
 import AppContext from "../context/Context";
 import { useAuth } from "../context/AuthContext";
 import API from "../axios";
-import "../styles/Product.css";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import "../styles/Product.css";
 
 const Product = () => {
   const { id } = useParams();
@@ -14,162 +13,134 @@ const Product = () => {
   const { isAdmin } = useAuth();
   const [product, setProduct] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
-  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductData = async () => {
       try {
-        const response = await API.get(`/api/product/${id}`);
-        setProduct(response.data);
-        if (response.data.imageName) {
-          fetchImage();
-        }
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        setError("Failed to load product");
+        setIsLoading(true);
+        const [productRes, imageRes] = await Promise.all([
+          API.get(`/api/product/${id}`),
+          API.get(`/api/product/${id}/image`, { responseType: "blob" })
+        ]);
+        
+        setProduct(productRes.data);
+        setImageUrl(URL.createObjectURL(imageRes.data));
+      } catch (err) {
+        console.error("Failed to fetch product data", err);
         toast.error("Failed to load product");
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    const fetchImage = async () => {
-      try {
-        const response = await API.get(`/api/product/${id}/image`, {
-          responseType: "blob",
-        });
-        const url = URL.createObjectURL(response.data);
-        setImageUrl(url);
-        return url;
-      } catch (error) {
-        console.error("Error fetching image:", error);
-        return "";
-      }
-    };
+    fetchProductData();
+  }, [id]);
 
-    fetchProduct();
-
-    // Cleanup image URL
-    return () => {
-      if (imageUrl) {
-        URL.revokeObjectURL(imageUrl);
-      }
-    };
-  }, [id, imageUrl]);
-
-  const deleteProduct = async () => {
-    if (!isAdmin) {
-      toast.error("Forbidden: Admin access required");
-      return;
-    }
+  const handleDelete = async () => {
+    if (!isAdmin) return toast.error("Admin only!");
 
     const result = await Swal.fire({
-      title: "Are you sure?",
+      title: "Delete this product?",
       text: "This action cannot be undone!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#6c757d",
       confirmButtonText: "Yes, delete it!",
     });
 
     if (result.isConfirmed) {
       try {
         await API.delete(`/api/product/${id}`);
-        removeFromCart(Number(id));
+        removeFromCart(id);
         toast.success("Product deleted successfully");
         refreshData();
         navigate("/");
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        toast.error("Failed to delete product");
+      } catch (err) {
+        console.error("Delete failed", err);
+        toast.error("Could not delete product");
       }
     }
   };
 
-  const handleEditClick = () => {
-    if (!isAdmin) {
-      toast.error("Forbidden: Admin access required");
-      return;
-    }
+  const handleEdit = () => {
+    if (!isAdmin) return toast.error("Admin only!");
     navigate(`/product/update/${id}`);
   };
 
   const handleAddToCart = () => {
-    if (product) {
-      addToCart(product);
-      toast.success("Added to Cart!");
-    }
+    addToCart(product);
+    toast.success(`${product.name} added to cart`);
   };
 
-  if (error) {
-    return <h2 className="text-center" style={{ padding: "10rem" }}>{error}</h2>;
+  if (isLoading) {
+    return <div className="product-loading">Loading product details...</div>;
   }
 
   if (!product) {
-    return <h2 className="text-center" style={{ padding: "10rem" }}>Loading...</h2>;
+    return <div className="product-error">Product not found</div>;
   }
 
   return (
-    <div className="product-container">
-      {/* Product Image */}
-      <img
-        className="product-image"
-        src={imageUrl || "/placeholder.png"}
-        alt={product.name}
-      />
+    <section className="product-container">
+      <div className="product-image-container">
+        <img 
+          src={imageUrl} 
+          alt={product.name} 
+          className="product-image"
+          onError={(e) => {
+            e.target.src = '/placeholder-product.png';
+          }}
+        />
+      </div>
 
-      {/* Product Details */}
       <div className="product-details">
         <div className="product-meta">
-          <span>{product.category}</span>
-          <span>
-            Listed: {new Date(product.releaseDate).toLocaleDateString()}
+          <span className="product-category">{product.category}</span>
+          <span className="product-date">
+            Added: {new Date(product.releaseDate).toLocaleDateString()}
           </span>
         </div>
 
         <h1 className="product-title">{product.name}</h1>
-        <p className="product-brand">{product.brand}</p>
+        <p className="product-brand">Brand: {product.brand}</p>
 
-        <p className="product-description-title">Description</p>
-        <p className="product-description">{product.description}</p>
+        <div className="product-description">
+          <h3>Description</h3>
+          <p>{product.description}</p>
+        </div>
 
-        <p className="product-price">₹{product.price}</p>
+        <div className="product-pricing">
+          <span className="product-price">₹{product.price.toLocaleString()}</span>
+          <span className={`product-stock ${product.stockQuantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
+            {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : 'Out of stock'}
+          </span>
+        </div>
 
-        <p className="product-stock">
-          Stock: {product.stockQuantity > 0 ? product.stockQuantity : "Out of Stock"}
-        </p>
-
-        {/* Action Buttons */}
-        <div className="product-buttons">
+        <div className="product-actions">
           <button
-            className={`product-button product-button--primary ${
-              !product.productAvailable ? "product-button--disabled" : ""
-            }`}
+            className="btn-add-to-cart"
             onClick={handleAddToCart}
-            disabled={!product.productAvailable}
+            disabled={!product.productAvailable || product.stockQuantity <= 0}
           >
-            {product.productAvailable ? "Add to Cart" : "Out of Stock"}
+            {product.productAvailable ? "Add to Cart" : "Unavailable"}
           </button>
 
           {isAdmin && (
-            <button
-              className="product-button product-button--warning"
-              onClick={handleEditClick}
-            >
-              Edit
-            </button>
-          )}
-          {isAdmin && (
-            <button
-              className="product-button product-button--danger"
-              onClick={deleteProduct}
-            >
-              Delete
-            </button>
+            <div className="admin-actions">
+              <button className="btn-edit" onClick={handleEdit}>
+                Edit Product
+              </button>
+              <button className="btn-delete" onClick={handleDelete}>
+                Delete Product
+              </button>
+            </div>
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
