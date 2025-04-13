@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Cart from "./components/Cart";
 import AddProduct from "./components/AddProduct";
+import OAuth2RedirectHandler from "./components/OAuth2RedirectHandler";
 import Product from "./components/Product";
 import { toast, ToastContainer } from "react-toastify";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -111,6 +112,7 @@ function App() {
         <Route path="/signup" element={<RegisterForm />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/forbidden" element={<Forbidden />} />
+        <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} /> 
 
         {/* Protected Routes (require login) */}
         <Route

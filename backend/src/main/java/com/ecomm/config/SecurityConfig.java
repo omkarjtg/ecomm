@@ -1,6 +1,7 @@
 package com.ecomm.config;
 
 import com.ecomm.model.User;
+import com.ecomm.model.UserPrincipal;
 import com.ecomm.service.CustomOAuth2UserService;
 import com.ecomm.service.JwtService;
 import jakarta.servlet.http.Cookie;
@@ -109,7 +110,8 @@ public class SecurityConfig {
                         .successHandler((request, response, authentication) -> {
                             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
                             String email = oAuth2User.getAttribute("email");
-                            User user = (User) userDetailsService.loadUserByUsername(email);
+                            UserPrincipal userPrincipal = (UserPrincipal) userDetailsService.loadUserByUsername(email);
+                            User user = userPrincipal.getUser();
 
                             String jwt = jwtService.generateToken(user);
 
@@ -120,15 +122,18 @@ public class SecurityConfig {
 //                            cookie.setSecure(true);
                             cookie.setPath("/");
                             cookie.setMaxAge(7 * 24 * 60 * 60);         //  7 days
-                            cookie.setDomain("ecomm-eight-bice.vercel.app");
+                            cookie.setDomain(null);
 
                             response.addCookie(cookie);
-                            response.sendRedirect("https://ecomm-eight-bice.vercel.app"); // Redirect to home or dashboard
+                            response.sendRedirect("https://ecomm-eight-bice.vercel.app/oauth2/redirect?token=" + jwt); // Redirect to home or dashboard
+//                            response.sendRedirect("http://localhost:5173/oauth2/redirect?token=" + jwt);
+
                         })
 
                         .failureHandler((request, response, exception) -> {
                             // Handle OAuth2 failures (e.g., redirect to error page)
-                            response.sendRedirect("https://ecomm-eight-bice.vercel.app/error?message=authentication_failed");
+                            response.sendRedirect("https://ecomm-eight-bice.vercel.app/error");
+//                            response.sendRedirect("http://localhost:5173/error");
                         })
                 )
                 .build();

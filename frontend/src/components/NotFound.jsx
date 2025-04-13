@@ -14,7 +14,7 @@ const NotFound = () => {
                 className="btn btn-primary mt-3"
                 onClick={() => navigate("/")}
             >
-                Return to Home
+                Return to Home  
             </button>
         </div>
     );

@@ -23,7 +23,7 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
   const dropdownRef = useRef(null);
   const collapseRef = useRef(null);
 
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, user, logout } = useAuth();
 
   useEffect(() => {
     const collapseEl = document.getElementById("navbarSupportedContent");
@@ -169,6 +169,9 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
                   <span className="nav-link">{selectedCategory}</span>
                 </li>
               )}
+                <li className="nav-item">
+                <a className="nav-link active" target="_blank" href="https://github.com/omkarjtg/ecomm/">About</a>
+              </li>     
             </ul>
 
             {/* Search bar */}

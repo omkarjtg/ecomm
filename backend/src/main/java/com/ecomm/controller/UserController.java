@@ -72,11 +72,6 @@ public class UserController {
         return ResponseEntity.ok(profile);
     }
 
-    @GetMapping("/debug-auth")
-    public ResponseEntity<?> checkAuth() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return ResponseEntity.ok(auth.getAuthorities());
-    }
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest registerRequest) {
