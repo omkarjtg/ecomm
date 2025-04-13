@@ -1,6 +1,8 @@
 package com.ecomm.config;
 
+import com.ecomm.model.User;
 import com.ecomm.service.CustomOAuth2UserService;
+import com.ecomm.service.JwtService;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +15,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,6 +37,9 @@ public class SecurityConfig {
 
     @Autowired
     private JwtFilter jwtFilter;
+
+    @Autowired
+    private JwtService jwtService;
 
     @Autowired
     private CustomOAuth2UserService customOAuth2UserService;
@@ -102,7 +108,12 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler((request, response, authentication) -> {
                             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-                            String jwt = (String) oAuth2User.getAttributes().get("token");
+                            String email = oAuth2User.getAttribute("email");
+                            User user = (User) userDetailsService.loadUserByUsername(email);
+
+                            String jwt = jwtService.generateToken(user);
+
+//                            String jwt = (String) oAuth2User.getAttributes().get("token");
 
                             Cookie cookie = new Cookie("token", jwt);
                             cookie.setHttpOnly(true);
