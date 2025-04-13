@@ -2,7 +2,6 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-
 const API = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
@@ -11,9 +10,11 @@ const API = axios.create({
 // Request interceptor
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    if (token && token !== "undefined") {
-      config.headers["Authorization"] = `Bearer ${token}`;
+    if (!config.headers["Authorization"]) {
+      const token = localStorage.getItem("token");
+      if (token && token !== "undefined") {
+        config.headers["Authorization"] = `Bearer ${token}`;
+      }
     }
     return config;
   },
