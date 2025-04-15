@@ -112,7 +112,7 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
     <header>
       <nav className="navbar navbar-expand-lg fixed-top">
         <div className="container-fluid">
-          <Link className="navbar-brand" to="/">Ecomm</Link>
+          <Link className="navbar-brand" to="/">eComm</Link>
 
           <button
             className="navbar-toggler"
