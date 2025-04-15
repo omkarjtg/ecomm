@@ -42,11 +42,11 @@ const UpdateProduct = () => {
         const responseImage = await API.get(`/api/product/${id}/image`, {
           responseType: "blob",
         });
-        const imageFile = await converUrlToFile(
+        const image = await converUrlToFile(
           responseImage.data,
           response.data.imageName
         );
-        setImage(imageFile);
+        setImage(image);
 
         setUpdateProduct({
           ...response.data,
@@ -74,7 +74,7 @@ const UpdateProduct = () => {
     );
 
     if (image) {
-      formData.append("imageFile", image);
+      formData.append("image", image);
     }
 
     try {
