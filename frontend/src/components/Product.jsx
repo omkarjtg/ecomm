@@ -86,10 +86,8 @@ const Product = () => {
     setIsDescriptionExpanded(!isDescriptionExpanded);
   };
 
-  // Define the character limit for the truncated description
   const DESCRIPTION_LIMIT = 200;
 
-  // Get the description text (or fallback if none exists)
   const description = product?.description || "No description available.";
   
   // Determine if the description should be truncated
@@ -131,7 +129,6 @@ const Product = () => {
         <p className="product-brand">Brand: {product.brand}</p>
 
         <div className="product-description">
-          <h3>Description</h3>
           <p>
             {isDescriptionExpanded || !isTruncatable
               ? description
