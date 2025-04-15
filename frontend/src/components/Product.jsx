@@ -15,6 +15,7 @@ const Product = () => {
   const [product, setProduct] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false); // New state for toggling description
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -81,6 +82,22 @@ const Product = () => {
     setProduct(updatedProduct);
   };
 
+  const toggleDescription = () => {
+    setIsDescriptionExpanded(!isDescriptionExpanded);
+  };
+
+  // Define the character limit for the truncated description
+  const DESCRIPTION_LIMIT = 200;
+
+  // Get the description text (or fallback if none exists)
+  const description = product?.description || "No description available.";
+  
+  // Determine if the description should be truncated
+  const isTruncatable = description.length > DESCRIPTION_LIMIT;
+  const truncatedDescription = isTruncatable
+    ? `${description.substring(0, DESCRIPTION_LIMIT)}...`
+    : description;
+
   if (isLoading) {
     return <div className="product-loading">Loading product details...</div>;
   }
@@ -115,7 +132,19 @@ const Product = () => {
 
         <div className="product-description">
           <h3>Description</h3>
-          <p>{product.description || "No description available."}</p>
+          <p>
+            {isDescriptionExpanded || !isTruncatable
+              ? description
+              : truncatedDescription}
+            {isTruncatable && (
+              <span
+                className="see-more-link"
+                onClick={toggleDescription}
+              >
+                {isDescriptionExpanded ? " See Less" : " See More"}
+              </span>
+            )}
+          </p>
           {isAdmin && (
             <GenerateDescriptionButton
               productId={id}
