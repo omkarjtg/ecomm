@@ -78,13 +78,12 @@ const AddProduct = () => {
 
       console.log("Product added successfully:", response.data);
       toast.success("Product added successfully!");
-      navigate(`/product/${productId}`)
+      navigate(`/product/${productId}`);
     } catch (error) {
       console.error("Error adding product:", error);
       toast.error("Error adding product");
     }
   };
-
 
   return (
     <div className="container">
@@ -100,6 +99,7 @@ const AddProduct = () => {
             onChange={handleInputChange}
             value={product.name}
             name="name"
+            required
           />
         </div>
 
@@ -113,22 +113,22 @@ const AddProduct = () => {
             placeholder="Enter your Brand"
             value={product.brand}
             onChange={handleInputChange}
+            required
           />
         </div>
 
         {/* Description */}
         <div className="col-12">
-          <label className="form-label"><h6>Description</h6></label>
+          <label className="form-label"><h6>Description (Optional - Will be generated if left blank)</h6></label>
           <textarea
             className="form-control"
-            placeholder="Add product description"
+            placeholder="Add product description (optional)"
             value={product.description}
             name="description"
             onChange={handleInputChange}
-            rows="4"  // Adjust the number of visible rows
+            rows="4"
           />
         </div>
-
 
         {/* Price */}
         <div className="col-md-6">
@@ -140,6 +140,7 @@ const AddProduct = () => {
             onChange={handleInputChange}
             value={product.price}
             name="price"
+            required
           />
         </div>
 
@@ -151,6 +152,7 @@ const AddProduct = () => {
             value={product.category}
             onChange={handleInputChange}
             name="category"
+            required
           >
             <option value="">Select category</option>
             <option value="Laptops">Laptops</option>
@@ -174,6 +176,7 @@ const AddProduct = () => {
             onChange={handleInputChange}
             value={product.stockQuantity}
             name="stockQuantity"
+            required
           />
         </div>
 
@@ -186,13 +189,19 @@ const AddProduct = () => {
             dateFormat="dd/MM/yyyy"
             placeholderText="Select release date"
             className="form-control"
+            required
           />
         </div>
 
         {/* Image Upload */}
         <div className="col-md-6">
           <label className="form-label"><h6>Image</h6></label>
-          <input className="form-control" type="file" onChange={handleImageChange} />
+          <input
+            className="form-control"
+            type="file"
+            onChange={handleImageChange}
+            required
+          />
         </div>
 
         {/* Product Available Checkbox */}
