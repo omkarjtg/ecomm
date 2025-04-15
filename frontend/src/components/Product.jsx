@@ -6,6 +6,7 @@ import API from "../axios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import "../styles/Product.css";
+import GenerateDescriptionButton from "./GenerateDescription";
 
 const Product = () => {
   const { id } = useParams();
@@ -22,9 +23,9 @@ const Product = () => {
         setIsLoading(true);
         const [productRes, imageRes] = await Promise.all([
           API.get(`/api/product/${id}`),
-          API.get(`/api/product/${id}/image`, { responseType: "blob" })
+          API.get(`/api/product/${id}/image`, { responseType: "blob" }),
         ]);
-        
+
         setProduct(productRes.data);
         setImageUrl(URL.createObjectURL(imageRes.data));
       } catch (err) {
@@ -75,6 +76,11 @@ const Product = () => {
     toast.success(`${product.name} added to cart`);
   };
 
+  const handleDescriptionGenerated = (updatedProduct) => {
+    // Update the product state with the new description
+    setProduct(updatedProduct);
+  };
+
   if (isLoading) {
     return <div className="product-loading">Loading product details...</div>;
   }
@@ -86,12 +92,12 @@ const Product = () => {
   return (
     <section className="product-container">
       <div className="product-image-container">
-        <img 
-          src={imageUrl} 
-          alt={product.name} 
+        <img
+          src={imageUrl}
+          alt={product.name}
           className="product-image"
           onError={(e) => {
-            e.target.src = '/placeholder-product.png';
+            e.target.src = "/placeholder-product.png";
           }}
         />
       </div>
@@ -109,13 +115,25 @@ const Product = () => {
 
         <div className="product-description">
           <h3>Description</h3>
-          <p>{product.description}</p>
+          <p>{product.description || "No description available."}</p>
+          {isAdmin && (
+            <GenerateDescriptionButton
+              productId={id}
+              onDescriptionGenerated={handleDescriptionGenerated}
+            />
+          )}
         </div>
 
         <div className="product-pricing">
           <span className="product-price">₹{product.price.toLocaleString()}</span>
-          <span className={`product-stock ${product.stockQuantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
-            {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : 'Out of stock'}
+          <span
+            className={`product-stock ${
+              product.stockQuantity > 0 ? "in-stock" : "out-of-stock"
+            }`}
+          >
+            {product.stockQuantity > 0
+              ? `${product.stockQuantity} in stock`
+              : "Out of stock"}
           </span>
         </div>
 
