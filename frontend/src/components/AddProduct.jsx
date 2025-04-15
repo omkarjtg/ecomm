@@ -6,6 +6,7 @@ import "../styles/Form.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Spinner } from "react-bootstrap"; // Import Spinner from react-bootstrap
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const AddProduct = () => {
     productAvailable: false,
   });
   const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false); // Add loading state
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -36,6 +38,7 @@ const AddProduct = () => {
 
   const submitHandler = async (event) => {
     event.preventDefault();
+    setLoading(true); // Set loading to true when submission starts
 
     // Format release date properly
     const formattedDate = product.releaseDate
@@ -51,7 +54,7 @@ const AddProduct = () => {
     );
 
     if (image) {
-      formData.append("image", image); // Changed from "imageFile" to "image"
+      formData.append("imageFile", image);
     }
 
     try {
@@ -59,10 +62,11 @@ const AddProduct = () => {
       if (!token) {
         console.error("No token found, user might be logged out.");
         toast.error("Authentication error. Please log in.");
+        setLoading(false); // Reset loading on error
         return;
       }
 
-      console.log("Using token for API request:", token); // Debugging
+      console.log("Using token for API request:", token);
       console.log(formData);
 
       const response = await API.post(
@@ -83,6 +87,8 @@ const AddProduct = () => {
     } catch (error) {
       console.error("Error adding product:", error);
       toast.error("Error adding product");
+    } finally {
+      setLoading(false); // Reset loading when request completes (success or error)
     }
   };
 
@@ -221,7 +227,17 @@ const AddProduct = () => {
 
         {/* Submit Button */}
         <div className="col-12">
-          <button type="submit" className="btn-primary">Submit</button>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading && (
+              <Spinner
+                animation="border"
+                size="sm"
+                className="me-2"
+                role="status"
+              />
+            )}
+            Submit
+          </button>
         </div>
       </form>
     </div>
