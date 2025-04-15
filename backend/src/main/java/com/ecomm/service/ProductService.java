@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -29,7 +31,7 @@ public class ProductService {
     }
 
     public Product getProductById(Long id) {
-        return productRepo.findById(id).orElseThrow(()-> new RuntimeException("no such product"));
+        return productRepo.findById(id).orElseThrow(() -> new RuntimeException("no such product"));
     }
 
     public Product addOrUpdateProduct(Product product, MultipartFile image) throws IOException {
@@ -37,9 +39,22 @@ public class ProductService {
         product.setImageType(image.getContentType());
         product.setImageData(image.getBytes());
 
+        // Truncate existing description if it exceeds 1000 characters
+        if (product.getDescription() != null && product.getDescription().length() > 1000) {
+            logger.warn("Truncating existing description for product {} (length: {}): {}",
+                    product.getName(), product.getDescription().length(), product.getDescription());
+            product.setDescription(product.getDescription().substring(0, 1000));
+        }
+
         // Generate description if not already set
         if (product.getDescription() == null || product.getDescription().isEmpty()) {
             String description = generateProductDescription(product).block(); // Blocking call for simplicity
+            // Truncate the generated description if necessary
+            if (description != null && description.length() > 1000) {
+                logger.warn("Truncated generated description for product {} (length: {}) to 1000 characters: {}",
+                        product.getName(), description.length(), description);
+                description = description.substring(0, 1000);
+            }
             product.setDescription(description);
         }
 
@@ -61,6 +76,27 @@ public class ProductService {
         return Mono.just(prompt)
                 .delayElement(Duration.ofSeconds(4)) // 15 RPM = 1 request every 4 seconds
                 .flatMap(geminiService::generateContent)
+                .map(rawResponse -> {
+                    // Parse the raw JSON response and extract the description text
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode rootNode = mapper.readTree(rawResponse);
+                        String description = rootNode.path("candidates")
+                                .path(0)
+                                .path("content")
+                                .path("parts")
+                                .path(0)
+                                .path("text")
+                                .asText();
+                        if (description == null || description.trim().isEmpty()) {
+                            throw new IllegalStateException("Generated description is empty");
+                        }
+                        return description;
+                    } catch (Exception e) {
+                        logger.error("Failed to parse description from GeminiService response: {}", rawResponse, e);
+                        throw new IllegalStateException("Failed to parse description: " + e.getMessage());
+                    }
+                })
                 .onErrorResume(e -> {
                     logger.error("Failed to generate description for product {}: {}", product.getName(), e.getMessage());
                     return Mono.just("Description not available due to an error.");
@@ -74,7 +110,18 @@ public class ProductService {
         }
 
         String description = generateProductDescription(product).block();
+        // Truncate the description if necessary
+        if (description != null && description.length() > 1000) {
+            logger.warn("Truncated generated description for product {} (length: {}) to 1000 characters: {}",
+                    product.getName(), description.length(), description);
+            description = description.substring(0, 1000);
+        }
         product.setDescription(description);
+
+        // Log the final description being saved
+        logger.info("Saving product {} with description (length: {}): {}",
+                product.getName(), product.getDescription().length(), product.getDescription());
+
         return productRepo.save(product);
     }
 
@@ -95,8 +142,8 @@ public class ProductService {
         return (product != null) ? product.getImageData() : null;
     }
 
-    public void deleteProduct(Long id) {
-        productRepo.delete(getProductById(id));
+    public void deleteProduct(Long productId) {
+        productRepo.delete(getProductById(productId));
     }
 
     public List<Product> searchProducts(String keyword) {

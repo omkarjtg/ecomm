@@ -6,7 +6,7 @@ import API from "../axios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import "../styles/Product.css";
-import GenerateDescriptionButton from "./GenerateDescription";
+import GenerateDescriptionButton from "./GenerateDescriptionButton";
 
 const Product = () => {
   const { id } = useParams();

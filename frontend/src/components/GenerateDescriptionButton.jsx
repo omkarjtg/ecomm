@@ -12,14 +12,22 @@ const GenerateDescriptionButton = ({ productId, onDescriptionGenerated }) => {
     setLoading(true);
 
     try {
-          const response = await API.post(
-        `/api/product/${productId}/generate-description`);
+      const response = await API.post(`/api/product/${productId}/generate-description`);
+
+      // Extract the description from the response if it's the raw API response
+      let updatedProduct = response.data;
+      if (updatedProduct.candidates && updatedProduct.candidates[0]?.content?.parts?.[0]?.text) {
+        updatedProduct = {
+          ...updatedProduct,
+          description: updatedProduct.candidates[0].content.parts[0].text
+        };
+      }
 
       toast.success('Description generated successfully!');
 
       // Call the callback to refresh the product data
-      if (onDescriptionGenerated) {
-        onDescriptionGenerated(response.data); // Pass the updated product data
+      if (onDescriptionGenerated) { 
+        onDescriptionGenerated(updatedProduct);
       }
     } catch (error) {
       const errorMessage =
