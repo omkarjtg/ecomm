@@ -1,9 +1,7 @@
 package com.ecomm.controller;
 
-import com.ecomm.dto.DecrementRequest;
 import com.ecomm.model.Product;
 import com.ecomm.service.ProductService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +25,6 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-
     @GetMapping("/products")
     public ResponseEntity<List<Product>> getProducts() {
         try {
@@ -40,7 +37,7 @@ public class ProductController {
     }
 
     @GetMapping("/product/{id}")
-    public ResponseEntity<Product> getProductByID(@PathVariable("id") int id) {
+    public ResponseEntity<Product> getProductById(@PathVariable("id") Long id) {
         try {
             Product product = productService.getProductById(id);
             if (product != null) {
@@ -55,15 +52,15 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/product/{productId}/image")
-    public ResponseEntity<byte[]> getImageByProductId(@PathVariable int productId) {
+    @GetMapping(value = "/product/{productId}/image", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<byte[]> getImageByProductId(@PathVariable Long productId) {
         try {
             byte[] imageData = productService.getProductImage(productId);
             if (imageData != null) {
-                Product product = productService.getProductById(productId); // Fetch product for metadata
+                Product product = productService.getProductById(productId);
                 logger.info("Serving image of type {} for product ID {}", product.getImageType(), productId);
                 return ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_JPEG)
+                        .contentType(MediaType.parseMediaType(product.getImageType()))
                         .body(imageData);
             } else {
                 logger.warn("Image for product ID {} not found", productId);
@@ -75,28 +72,49 @@ public class ProductController {
         }
     }
 
-
-
-
-    @PutMapping("/product/{id}")
-    public ResponseEntity<String> updateProduct(@PathVariable int id, @RequestPart Product product, @RequestPart MultipartFile imageFile) {
+    @PostMapping(value = "/product", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> addProduct(@RequestPart("product") Product product, @RequestPart("image") MultipartFile imageFile) {
         try {
-            productService.addOrUpdateProduct(product, imageFile);
-            return new ResponseEntity<>("Updated", HttpStatus.OK);
-        } catch (IOException e) {
-            logger.error("Error updating product with ID {}", id, e);
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @PostMapping("/product")
-    public ResponseEntity<?> addProduct(@RequestPart Product product, @RequestPart MultipartFile imageFile) {
-        try {
+            logger.info("Adding new product: {}", product.getName());
             Product savedProduct = productService.addOrUpdateProduct(product, imageFile);
             return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
         } catch (IOException e) {
-            logger.error("Error adding product", e);
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            logger.error("Error adding product: {}", product.getName(), e);
+            return new ResponseEntity<>("Failed to add product: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping(value = "/product/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateProduct(
+            @PathVariable Long id,
+            @RequestPart("product") Product product,
+            @RequestPart("image") MultipartFile imageFile) {
+        try {
+            logger.info("Updating product with ID: {}", id);
+            product.setId(id);
+            Product updatedProduct = productService.addOrUpdateProduct(product, imageFile);
+            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+        } catch (IOException e) {
+            logger.error("Error updating product with ID {}: {}", id, e.getMessage());
+            return new ResponseEntity<>("Failed to update product: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/product/{id}/generate-description")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> generateDescription(@PathVariable("id") Long id) {
+        try {
+            logger.info("Generating description for product with ID: {}", id);
+            Product updatedProduct = productService.generateDescriptionForProduct(id);
+            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Product with ID {} not found for description generation", id);
+            return new ResponseEntity<>("Product not found: " + e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            logger.error("Error generating description for product with ID {}: {}", id, e.getMessage());
+            return new ResponseEntity<>("Failed to generate description: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -112,7 +130,8 @@ public class ProductController {
     }
 
     @DeleteMapping("/product/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable int id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
         try {
             Product product = productService.getProductById(id);
             if (product != null) {
@@ -124,17 +143,25 @@ public class ProductController {
             }
         } catch (Exception e) {
             logger.error("Error deleting product with ID {}", id, e);
-            return new ResponseEntity<>("Error deleting product", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error deleting product: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    //For updating stock after processing order, internal usage only
-    @PutMapping("/product/{id}/decrement-stock")
-    public ResponseEntity<?> decrementStock(@PathVariable("id") Long id, @RequestBody Map<String, Integer> request) {
-        int quantity= request.get("quantity");
-        System.out.println(quantity);
-        productService.decrementStock(id, quantity);
-        return ResponseEntity.ok().build();
-    }
 
+    @PutMapping("/product/{id}/decrement-stock")
+    @PreAuthorize("hasRole('ADMIN')") // Internal usage, restricted to admins
+    public ResponseEntity<?> decrementStock(@PathVariable("id") Long id, @RequestBody Map<String, Integer> request) {
+        try {
+            int quantity = request.get("quantity");
+            logger.info("Decrementing stock for product ID {} by quantity {}", id, quantity);
+            productService.decrementStock(id, quantity);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.warn("Error decrementing stock for product ID {}: {}", id, e.getMessage());
+            return new ResponseEntity<>("Failed to decrement stock: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            logger.error("Unexpected error decrementing stock for product ID {}: {}", id, e.getMessage());
+            return new ResponseEntity<>("Unexpected error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

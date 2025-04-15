@@ -98,6 +98,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/error").permitAll()
 
+                        //Gemini emdpoint
+                        .requestMatchers(HttpMethod.POST, "/api/gemini/**").permitAll()
                         // Any other request
                         .anyRequest().authenticated()
                 )
