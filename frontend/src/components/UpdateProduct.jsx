@@ -7,6 +7,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "../styles/Form.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Spinner } from "react-bootstrap"; // Import Spinner from react-bootstrap
 
 const UpdateProduct = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const UpdateProduct = () => {
     productAvailable: false,
     stockQuantity: "",
   });
+  const [loading, setLoading] = useState(false); // Add loading state
 
   const converUrlToFile = async (blobData, fileName) => {
     return new File([blobData], fileName, { type: blobData.type });
@@ -63,6 +65,7 @@ const UpdateProduct = () => {
 
   const submitHandler = async (event) => {
     event.preventDefault();
+    setLoading(true); // Set loading to true when submission starts
 
     const formData = new FormData();
     formData.append(
@@ -71,7 +74,7 @@ const UpdateProduct = () => {
     );
 
     if (image) {
-      formData.append("image", image); // Changed from "imageFile" to "image"
+      formData.append("imageFile", image);
     }
 
     try {
@@ -82,11 +85,9 @@ const UpdateProduct = () => {
       navigate(`/product/${id}`);
     } catch (error) {
       console.error("Error updating product:", error);
-      if (error.response && error.response.data.includes("Required part 'image' is not present")) {
-        toast.error("Please upload an image for the product");
-      } else {
-        toast.error("Failed to update product. Please try again.");
-      }
+      toast.error("Failed to update product. Please try again.");
+    } finally {
+      setLoading(false); // Reset loading when request completes (success or error)
     }
   };
 
@@ -270,13 +271,22 @@ const UpdateProduct = () => {
           </div>
 
           <div className="col-12 button-group">
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading && (
+                <Spinner
+                  animation="border"
+                  size="sm"
+                  className="me-2"
+                  role="status"
+                />
+              )}
               Update Product
             </button>
             <button
               type="button"
               className="btn btn-secondary"
               onClick={handleCancel}
+              disabled={loading}
             >
               Cancel
             </button>
