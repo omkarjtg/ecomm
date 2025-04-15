@@ -54,7 +54,7 @@ const AddProduct = () => {
     );
 
     if (image) {
-      formData.append("imageFile", image);
+      formData.append("image", image);
     }
 
     try {
