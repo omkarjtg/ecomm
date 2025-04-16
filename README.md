@@ -1,4 +1,4 @@
-# 🛒 Ecomm — Full Stack E-Commerce App
+# 🛒 eComm — Full Stack E-Commerce App
 
 A fully functional e-commerce application built with **Spring Boot**, **React**, **MySQL**, and **Razorpay**.  
 Supports user authentication (custom + Google OAuth2), product listings, cart, checkout, order history, and admin management.
@@ -10,23 +10,25 @@ Supports user authentication (custom + Google OAuth2), product listings, cart, c
 - 🛍️ Cart & Checkout with Razorpay Integration
 - 📃 Order Management & History
 - 🔒 JWT Authentication with Cookie-based storage
-- 🧠 AI-based product description generation using Spring AI (optional)
+- 🧠 AI-based product description generation using Spring AI
 - 📤 Forgot Password & Reset with token link
 - 📋 Admin Dashboard (Product & Order Oversight)
 
 ---
 
 ## ⚙️ Tech Stack
-
-| Layer        | Tech                                  |
-|--------------|---------------------------------------|
-| Frontend     | React, Axios, React Router, SweetAlert2 |
-| Backend      | Spring Boot 3, Spring Security, OAuth2, JWT, OkHttp |
-| AI           | Spring AI (OpenAI integration)        |
-| Payment      | Razorpay REST API                     |
-| Database     | MySQL (with JPA/Hibernate)            |
-| Deployment   | Railway (Full stack hosting)          |
-
+------------------------------------------------------------
+| Layer        | Tech                                       |
+|--------------|--------------------------------------------|
+| Frontend     | React, Axios, React Router                 |
+| Backend      | Spring Boot 3, Spring Security, OAuth2, JWT|
+| AI           | Spring AI (Gemini 2.0 Flash integration)   |     
+| Payment      | Razorpay REST API                          |  
+| Database     | MySQL (with JPA/Hibernate)                 |
+| Deployment   | Render (backend hosting),                  | 
+|              | Vercel(frontend)                           |
+|              | Aiven(database)                            |
+-------------------------------------------------------------
 ---
 
 ## 🚀 Setup Instructions
