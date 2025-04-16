@@ -64,11 +64,11 @@ public class ProductService {
     public Mono<String> generateProductDescription(Product product) {
         // Craft a prompt based on product attributes
         String prompt = String.format(
-                "Write a short, engaging product description (50-100 words) for the following product:\n" +
+                "Write a short, engaging product description (100-150 words) for the following product:\n" +
                         "Name: %s\n" +
                         "Category: %s\n" +
                         "Price: $%.2f\n" +
-                        "The description should highlight the product's features, appeal to customers, and be suitable for an e-commerce website.",
+                        "The description should highlight the product's features, appeal to customers, and be suitable for an e-commerce website. The price is in INR",
                 product.getName(), product.getCategory(), product.getPrice()
         );
 
