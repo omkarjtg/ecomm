@@ -6,6 +6,7 @@ import API from "../axios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import "../styles/Product.css";
+import ReactMarkdown from "react-markdown";
 import GenerateDescriptionButton from "./GenerateDescriptionButton";
 
 const Product = () => {
@@ -89,7 +90,7 @@ const Product = () => {
   const DESCRIPTION_LIMIT = 200;
 
   const description = product?.description || "No description available.";
-  
+
   // Determine if the description should be truncated
   const isTruncatable = description.length > DESCRIPTION_LIMIT;
   const truncatedDescription = isTruncatable
@@ -129,19 +130,20 @@ const Product = () => {
         <p className="product-brand">Brand: {product.brand}</p>
 
         <div className="product-description">
-          <p>
-            {isDescriptionExpanded || !isTruncatable
-              ? description
-              : truncatedDescription}
-            {isTruncatable && (
-              <span
-                className="see-more-link"
-                onClick={toggleDescription}
-              >
-                {isDescriptionExpanded ? " See Less" : " See More"}
-              </span>
-            )}
-          </p>
+        <p>
+          <ReactMarkdown>
+            {isDescriptionExpanded || !isTruncatable ? description : truncatedDescription}
+          </ReactMarkdown>
+          {isTruncatable && (
+            <span
+              className="see-more-link"
+              onClick={toggleDescription}
+              style={{ cursor: "pointer"}}
+            >
+              {isDescriptionExpanded ? " See Less" : " See More"}
+            </span>
+          )}
+        </p>
           {isAdmin && (
             <GenerateDescriptionButton
               productId={id}
@@ -153,9 +155,8 @@ const Product = () => {
         <div className="product-pricing">
           <span className="product-price">₹{product.price.toLocaleString()}</span>
           <span
-            className={`product-stock ${
-              product.stockQuantity > 0 ? "in-stock" : "out-of-stock"
-            }`}
+            className={`product-stock ${product.stockQuantity > 0 ? "in-stock" : "out-of-stock"
+              }`}
           >
             {product.stockQuantity > 0
               ? `${product.stockQuantity} in stock`

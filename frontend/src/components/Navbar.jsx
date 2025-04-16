@@ -52,7 +52,7 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
 
       debounceRef.current = setTimeout(() => {
         performSearch(input);
-      }, 500); // Adjust delay (ms) as needed
+      }, 500);
     } else {
       setSearchResults([]);
       setNoResults(false);
@@ -60,7 +60,6 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
 
     return () => clearTimeout(debounceRef.current);
   }, [input]);
-
 
   const performSearch = async (value) => {
     try {
@@ -80,7 +79,6 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
     }
   };
 
-
   const handleKeyDown = (e) => {
     if (searchResults.length === 0) return;
 
@@ -96,7 +94,7 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
   };
 
   const handleCategoryClick = (category) => {
-    onSelectCategory(category);
+    onSelectCategory(category); // Pass the category (or "" for All Products)
     if (dropdownRef.current) {
       const dropdown = bootstrap.Dropdown.getOrCreateInstance(dropdownRef.current);
       dropdown.hide();
@@ -104,8 +102,14 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
   };
 
   const categories = [
-    "Laptops", "Headphones", "Mobile Phones", "Television",
-    "Electronics", "Toys", "Clothing", "Healthcare and Cosmetics",
+    "Laptops",
+    "Headphones",
+    "Mobile Phones",
+    "Television",
+    "Electronics",
+    "Toys",
+    "Clothing",
+    "Healthcare and Cosmetics",
   ];
 
   return (
@@ -130,7 +134,6 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
             <span className="navbar-toggler-icon" />
           </button>
 
-
           <div
             ref={collapseRef}
             className="collapse navbar-collapse"
@@ -151,6 +154,14 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
                   Categories
                 </button>
                 <ul className="dropdown-menu">
+                  <li>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => handleCategoryClick("")} // Use empty string for "All Products"
+                    >
+                      All Products
+                    </button>
+                  </li>
                   {categories.map((category) => (
                     <li key={category}>
                       <button
@@ -169,9 +180,9 @@ const Navbar = ({ onSelectCategory, selectedCategory }) => {
                   <span className="nav-link">{selectedCategory}</span>
                 </li>
               )}
-                <li className="nav-item">
+              <li className="nav-item">
                 <a className="nav-link active" target="_blank" href="https://github.com/omkarjtg/ecomm/">About</a>
-              </li>     
+              </li>
             </ul>
 
             {/* Search bar */}
