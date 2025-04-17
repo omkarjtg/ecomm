@@ -109,6 +109,8 @@ function Cart() {
       setLoading(true);
       const total = calculateTotalAmount(cartItems);
       // const user = jwtDecode(token);
+      const profileRes = await API.get("/profile");
+      const user = profileRes
 
       const res = await API.post("/api/payment/create-order", {
         items: cartItems,

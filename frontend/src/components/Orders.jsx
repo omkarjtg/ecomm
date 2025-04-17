@@ -31,7 +31,7 @@ const Orders = () => {
     if (!isLoggedIn || !token) return user?.id || null;
     try {
       const { userId } = jwtDecode(token);
-      return userId;  
+      return userId;
     } catch {
       return user?.id || null;
     }
