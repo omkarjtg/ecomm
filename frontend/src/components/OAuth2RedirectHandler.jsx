@@ -1,28 +1,37 @@
-// src/components/OAuth2RedirectHandler.jsx
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 const OAuth2RedirectHandler = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const { login } = useAuth();
 
     useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const token = params.get("token");
+        const fetchUser = async () => {
+            try {
+                const res = await axios.get(
+                    "https://ecomm-txs3.onrender.com/profile",
+                    { withCredentials: true }
+                );
 
-        if (token) {
-            // You can optionally fetch the user info here using the token
-            login(token, null); // assuming your login function handles just the token
-            toast.success("Logged in via Google!");
-            navigate("/", { replace: true });
-        } else {
-            toast.error("Login failed: No token received.");
-            navigate("/login", { replace: true });
-        }
-    }, [location, login, navigate]);
+                if (res.data) {
+                    login(null, res.data);
+                    toast.success("Logged in via Google!");
+                    navigate("/", { replace: true });
+                } else {
+                    throw new Error("No user info");
+                }
+            } catch (err) {
+                console.error(err);
+                toast.error("Login failed");
+                navigate("/login", { replace: true });
+            }
+        };
+
+        fetchUser();
+    }, [login, navigate]);
 
     return null;
 };
