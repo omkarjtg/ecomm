@@ -135,9 +135,7 @@ function Cart() {
               razorpayPaymentId: response.razorpay_payment_id,
               razorpayOrderId: response.razorpay_order_id,
               razorpaySignature: response.razorpay_signature,
-            }, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
+             });
 
             // Update stock for all items
             await Promise.all(
