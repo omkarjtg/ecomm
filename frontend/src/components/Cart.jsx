@@ -156,7 +156,7 @@ const Cart = () => {
       try {
         const decoded = jwtDecode(token);
         userId = decoded.userId;
-          
+
         if (!userId) {
           throw new Error("User information not found in token");
         }
@@ -170,7 +170,7 @@ const Cart = () => {
         cartItems.map(item =>
           API.put(`api/product/${item.id}/decrement-stock`,
             { quantity: item.quantity },
-            { headers: { Authorization: `Bearer ${token}` } }
+            // { headers: { Authorization: `Bearer ${token}` } }
           )
         )
       );
@@ -205,10 +205,11 @@ const Cart = () => {
       setShowCheckoutPopup(false);
 
       const token = getValidToken();
-      if (!token) {
-        navigate('/login');
-        return;
-      }
+      console.log(token)
+      // if (!token) {
+      //   navigate('/login');
+      //   return;
+      // }
 
       const amountInCents = Math.round(totalPrice * 100);
       const orderResponse = await API.post('/api/payment/create-order', {
@@ -216,7 +217,7 @@ const Cart = () => {
         currency: 'INR',
         receipt: `order_${Date.now()}`
       }, {
-        headers: { Authorization: `Bearer ${token}` }
+        // headers: { Authorization: `Bearer ${token}` }
       });
 
       const { id: order_id, currency, amount } = orderResponse.data;
