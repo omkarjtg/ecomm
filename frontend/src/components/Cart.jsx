@@ -148,9 +148,9 @@ const Cart = () => {
 
 
       const token = getValidToken();
-      if (!token) {
-        throw new Error("Session expired. Please log in again.");
-      }
+      // if (!token) {
+      //   throw new Error("Session expired. Please log in again.");
+      // }
 
       let userId;
       try {
