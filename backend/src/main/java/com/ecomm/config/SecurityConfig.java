@@ -120,13 +120,13 @@ public class SecurityConfig {
 
                             Cookie cookie = new Cookie("token", jwt);
                             cookie.setHttpOnly(true);
-//                            cookie.setSecure(true);
+                           cookie.setSecure(true);
                             cookie.setPath("/");
                             cookie.setMaxAge(7 * 24 * 60 * 60);         //  7 days
-                            cookie.setDomain(null);
-
+                            cookie.setDomain("ecomm-eight-bice.vercel.app");
+                            cookie.setAttribute("SameSite", "None"); // Required if using cross-origin cookies
                             response.addCookie(cookie);
-                            response.sendRedirect("https://ecomm-eight-bice.vercel.app/oauth2/redirect?token=" + jwt); // Redirect to home or dashboard
+                            response.sendRedirect("https://ecomm-eight-bice.vercel.app/oauth2/redirect"); // Redirect to home or dashboard
 //                            response.sendRedirect("http://localhost:5173/oauth2/redirect?token=" + jwt);
 
                         })
