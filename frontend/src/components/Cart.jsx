@@ -100,10 +100,10 @@ function Cart() {
 
   const handleCheckout = async () => {
     const token = localStorage.getItem("token");
-    if (!token || isTokenExpired(token)) {
-      toast.info("Please login to proceed to checkout");
-      return navigate("/login");
-    }
+    // if (!token || isTokenExpired(token)) {
+    //   toast.info("Please login to proceed to checkout");
+    //   return navigate("/login");
+    // }
 
     if (stockErrors.length > 0) {
       toast.error("Please fix stock issues before checkout");
