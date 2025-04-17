@@ -16,13 +16,14 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProfileDTO {
-
+    private Long id;
     private String username;
     private String email;
     private Set<Role> roles;
     private LocalDate joinedAt;
 
     public ProfileDTO(User user) {
+        this.id=user.getId();
         this.username = user.getUsername();
         this.email = user.getEmail();
         this.roles = Set.of(user.getRoles());

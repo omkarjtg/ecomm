@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
                 logout();
             });
     }, []);
-        
+
 
     const login = async (token) => {
         if (!token) return console.error("❌ No token received at login.");
@@ -52,12 +52,25 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem("token");
-        setIsLoggedIn(false);
-        setUser(null);
-        setIsAdmin(false);
+    const logout = async () => {
+        try {
+            
+            await API.post("/logout", {}, { withCredentials: true });
+    
+            localStorage.removeItem("token");
+            setIsLoggedIn(false);
+            setUser(null);
+            setIsAdmin(false);
+    
+            document.cookie = "JSESSIONID=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+    
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
     };
+
+    
+
 
     const hasRole = (role) => {
         return user?.roles?.includes(role) || false;

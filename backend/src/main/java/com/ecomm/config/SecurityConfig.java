@@ -5,6 +5,7 @@ import com.ecomm.model.UserPrincipal;
 import com.ecomm.service.CustomOAuth2UserService;
 import com.ecomm.service.JwtService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,91 +59,94 @@ public class SecurityConfig {
         return provider;
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers("/register", "/login", "/forgot-password", "/reset-password", "/oauth2/**", "/auth/**", "/error").permitAll()
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/swagger-ui.html",
-                                "/webjars/**"
-                        ).permitAll()
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+            return httpSecurity
+                    .csrf(csrf -> csrf.disable())
+                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                    .authorizeHttpRequests(auth -> auth
+                            // Public endpoints
+                            .requestMatchers("/register", "/login", "/forgot-password", "/reset-password", "/oauth2/**", "/auth/**", "/error", "/logout").permitAll()
+                            .requestMatchers(
+                                    "/swagger-ui/**",
+                                    "/v3/api-docs/**",
+                                    "/swagger-resources/**",
+                                    "/swagger-ui.html",
+                                    "/webjars/**"
+                            ).permitAll()
 
-                        // Product endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/product/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/products/search").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/products/*/decrement-stock").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+                            // Product endpoints
+                            .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/product/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/products/search").permitAll()
+                            .requestMatchers(HttpMethod.PUT, "/api/products/*/decrement-stock").authenticated()
+                            .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
 
-                        // Razorpay endpoints
-                        .requestMatchers(HttpMethod.POST, "/api/payment/create-order").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/payment/verify").authenticated()
+                            // Razorpay endpoints
+                            .requestMatchers(HttpMethod.POST, "/api/payment/create-order").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/payment/verify").authenticated()
 
-                        // Order endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/orders/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/orders/**").authenticated()
+                            // Order endpoints
+                            .requestMatchers(HttpMethod.GET, "/api/orders/**").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/orders/**").authenticated()
 
-                        // Profile endpoint
-                        .requestMatchers("/profile").authenticated()
+                            // Profile endpoint
+                            .requestMatchers("/profile").authenticated()
 
-                        // Preflight and error support
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                            // Preflight and error support
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        //Gemini emdpoint
-                        .requestMatchers(HttpMethod.POST, "/api/gemini/**").permitAll()
-                        // Any other request
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler((request, response, authentication) -> {
-                            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-                            String email = oAuth2User.getAttribute("email");
-                            UserPrincipal userPrincipal = (UserPrincipal) userDetailsService.loadUserByUsername(email);
-                            User user = userPrincipal.getUser();
+                            //Gemini emdpoint
+                            .requestMatchers(HttpMethod.POST, "/api/gemini/**").permitAll()
+                            // Any other request
+                            .anyRequest().authenticated()
+                    )
+                    .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .authenticationProvider(authenticationProvider())
+                    .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                    .logout(logout -> logout
+                            .logoutUrl("/logout")
+                            .logoutSuccessHandler((request, response, authentication) -> {
+                                response.setStatus(HttpServletResponse.SC_OK);
+                            })
+                            .invalidateHttpSession(true)
+                            .deleteCookies("JSESSIONID", "token") // Add "token" cookie to delete
+                            .permitAll()
+                    )
+                    .oauth2Login(oauth2 -> oauth2
+                            .loginPage("/login")
+                            .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                            .successHandler((request, response, authentication) -> {
+                                OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+                                String email = oAuth2User.getAttribute("email");
+                                UserPrincipal userPrincipal = (UserPrincipal) userDetailsService.loadUserByUsername(email);
+                                User user = userPrincipal.getUser();
 
-                            String jwt = jwtService.generateToken(user);
+                                String jwt = jwtService.generateToken(user);
 
-
-                            Cookie cookie = new Cookie("token", jwt);
-                            cookie.setHttpOnly(true);
-                           cookie.setSecure(true);
-                            cookie.setPath("/");
-                            cookie.setMaxAge(7 * 24 * 60 * 60);         //  7 days
-                            String host = request.getServerName();
-                            if (host.contains("vercel.app")) {
-                                cookie.setDomain("ecomm-eight-bice.vercel.app");
-                            }
-                            cookie.setAttribute("SameSite", "None"); // Required if using cross-origin cookies
-                            response.addCookie(cookie);
-                            response.sendRedirect("https://ecomm-eight-bice.vercel.app/oauth2/redirect"); // Redirect to home or dashboard
-//                            response.sendRedirect("http://localhost:5173/oauth2/redirect");
-
-                        })
-
-                        .failureHandler((request, response, exception) -> {
-                            // Handle OAuth2 failures (e.g., redirect to error page)
-                            response.sendRedirect("https://ecomm-eight-bice.vercel.app/error");
-//                            response.sendRedirect("http://localhost:5173/error");
-                        })
-                )
-                .build();
-    }
-
-
+                                Cookie cookie = new Cookie("token", jwt);
+                                cookie.setHttpOnly(true);
+                                cookie.setSecure(true);
+                                cookie.setPath("/");
+                                cookie.setMaxAge(7 * 24 * 60 * 60);         //  7 days
+                                String host = request.getServerName();
+                                if (host.contains("vercel.app")) {
+                                    cookie.setDomain("ecomm-eight-bice.vercel.app");
+                                }
+                                cookie.setAttribute("SameSite", "None");
+                                response.addCookie(cookie);
+                                response.sendRedirect("https://ecomm-eight-bice.vercel.app/oauth2/redirect");
+//                                response.sendRedirect("http://localhost:5173/oauth2/redirect");
+                            })
+                            .failureHandler((request, response, exception) -> {
+//                                response.sendRedirect("http://localhost:5173/error");
+                                response.sendRedirect("https://ecomm-eight-bice.vercel.app/error");
+                            })
+                    )
+                    .build();
+        }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -167,23 +171,3 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 }
-
-//        @Bean
-//        public UserDetailsService userDetailsService() {
-//            UserDetails adminUser = User
-//                    .withDefaultPasswordEncoder()
-//                    .username("admin")
-//                    .password("password").
-//                    roles("ADMIN").
-//                    build();
-//
-//
-//            UserDetails user = User
-//                    .withDefaultPasswordEncoder()
-//                    .username("omkar")
-//                    .password("password")
-//                    .roles("USER")
-//                    .build();
-//            return new InMemoryUserDetailsManager(user, adminUser);
-//
-//        }
