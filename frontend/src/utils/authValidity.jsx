@@ -26,7 +26,7 @@ export const getValidToken = () => {
 };
 
 export const getUserIdFromToken = () => {
-    const token = getValidToken();
+    const token = getValidToken();  
     if (!token) return null;
 
     try {

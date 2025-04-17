@@ -145,17 +145,18 @@ const Cart = () => {
   const processOrder = async () => {
     try {
       setIsProcessing(true);
-      
+
+
       const token = getValidToken();
       if (!token) {
-        throw new Error("Please log in to complete your order");
+        throw new Error("Session expired. Please log in again.");
       }
 
       let userId;
       try {
         const decoded = jwtDecode(token);
         userId = decoded.userId;
-        
+          
         if (!userId) {
           throw new Error("User information not found in token");
         }
@@ -273,9 +274,9 @@ const Cart = () => {
       rzp.open();
     } catch (error) {
       console.error('Checkout failed:', error);
-      
+
       let errorMessage = error.response?.data?.message || error.message || 'Checkout error. Please try again.';
-      
+
       if (error.message.includes('token') || error.message.includes('log in')) {
         errorMessage = "Session expired. Please log in again.";
         navigate('/login');
@@ -295,8 +296,8 @@ const Cart = () => {
   if (!user) {
     return <div className="auth-prompt">
       <p>Please log in to view your cart</p>
-      <button 
-        className="btn-primary" 
+      <button
+        className="btn-primary"
         onClick={() => navigate('/login')}
       >
         Login
