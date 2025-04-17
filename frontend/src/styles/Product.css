@@ -17,6 +17,28 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.btn-add-to-cart:disabled:has(span.pulse) {
+    animation: pulse 0.5s ease-out;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        background-color: #0d6efd;
+    }
+
+    50% {
+        transform: scale(1.05);
+        background-color: #198754;
+    }
+
+    100% {
+        transform: scale(1);
+        background-color: #0d6efd;
+    }
+}
+
+
 .product-image {
     width: 100%;
     height: auto;
@@ -67,7 +89,7 @@
     font-size: 1.2rem;
 }
 
-.see-more-link{
+.see-more-link {
     color: #c03f4c;
 }
 

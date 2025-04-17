@@ -1,272 +1,175 @@
-import React, { useContext, useState, useEffect, useCallback } from "react";
-import.meta.env.VITE_RAZORPAY_KEY;
-import { jwtDecode } from 'jwt-decode';
-import AppContext from "../context/Context";
-import API from "../axios";
-import { useAuth } from "../context/AuthContext";
+import React, { useEffect, useState, useCallback } from "react";
+import { Button, Spinner, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import "../styles/Cart.css";
-// import { getValidToken, getUserIdFromToken } from '../utils/authValidity';
-import CheckoutPopup from "./CheckoutPopup";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-import CartItem from "./CartItem";
-import { Spinner } from "react-bootstrap";
+import CartItem from './CartItem';
+import '../styles/Cart.css';
+import { jwtDecode } from "jwt-decode";
+import API from "../axios";
+import {
+  getCartFromLocalStorage,
+  removeFromCartInLocalStorage,
+  calculateTotalAmount,
+  loadRazorpayScript,
+  isTokenExpired,
+} from "../utils/CartUtils";
 
-// Utility function to get and validate token
-const getValidToken = () => {
-  const token = localStorage.getItem("token")?.trim();
-  if (!token || typeof token !== 'string') {
-    return null;
-  }
-  return token;
-};
-
-const Cart = () => {
-  const { user } = useAuth();
-  const { cart, removeFromCart, clearCart, updateCartItemQuantity } = useContext(AppContext);
+function Cart() {
   const [cartItems, setCartItems] = useState([]);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showCheckoutPopup, setShowCheckoutPopup] = useState(false);
-  const [error, setError] = useState(null);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [stockChecking, setStockChecking] = useState(false);
+  const [stockErrors, setStockErrors] = useState([]);
   const navigate = useNavigate();
 
-  const calculateTotal = useCallback((items) => {
-    return items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  }, []);
+  const updateCart = useCallback(async () => {
+    const cart = getCartFromLocalStorage();
+    if (!cart.length) {
+      setCartItems([]);
+      return;
+    }
 
-  const fetchCartDetails = useCallback(async () => {
     try {
-      setIsLoading(true);
-      setError(null);
-
-      if (cart.length === 0) {
-        setCartItems([]);
-        return;
-      }
-
-      const enhancedItems = await Promise.all(
+      setStockChecking(true);
+      const updatedItems = await Promise.all(
         cart.map(async (cartItem) => {
           try {
-            const productResponse = await API.get(`/api/product/${cartItem.id}`);
-            const product = productResponse.data;
+            const [productRes, imageRes] = await Promise.all([
+              API.get(`/api/product/${cartItem.id}`),
+              API.get(`api/product/${cartItem.id}/image`, { responseType: "blob" })
+                .catch(() => ({ data: null })) // Gracefully handle image errors
+            ]);
 
-            let imageUrl = "/placeholder-image.png";
-            try {
-              const imageResponse = await API.get(
-                `api/product/${cartItem.id}/image`,
-                { responseType: "blob" }
-              );
-              imageUrl = URL.createObjectURL(imageResponse.data);
-            } catch (imageError) {
-              console.error("Error fetching image:", imageError);
-            }
+            const imageUrl = imageRes.data
+              ? URL.createObjectURL(imageRes.data)
+              : "/placeholder-image.png";
 
             return {
-              ...cartItem,
-              ...product,
+              ...productRes.data,
+              quantity: cartItem.quantity,
               imageUrl
             };
           } catch (error) {
-            console.error(`Error fetching product ${cartItem.id}:`, error);
+            console.error("Error fetching product:", error);
             return null;
           }
         })
       );
 
-      const validItems = enhancedItems.filter(item => item !== null);
+      const validItems = updatedItems.filter(item => item !== null);
+      const stockIssues = validItems.filter(item => item.quantity > item.stockQuantity);
+
+      setStockErrors(stockIssues);
       setCartItems(validItems);
-      setTotalPrice(calculateTotal(validItems));
     } catch (error) {
-      console.error("Error fetching cart details:", error);
-      setError("Failed to load cart items. Please try again.");
+      console.error("Error updating cart:", error);
+      toast.error("Failed to load cart items");
     } finally {
-      setIsLoading(false);
+      setStockChecking(false);
     }
-  }, [cart, calculateTotal]);
+  }, []);
 
   useEffect(() => {
-    fetchCartDetails();
+    updateCart();
+  }, [updateCart]);
 
-    return () => {
-      cartItems.forEach(item => {
-        if (item.imageUrl && !item.imageUrl.includes("placeholder-image.png")) {
-          URL.revokeObjectURL(item.imageUrl);
-        }
-      });
-    };
-  }, [fetchCartDetails]);
-
-  const handleQuantityChange = useCallback((itemId, newQuantity) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
-      )
-    );
-    updateCartItemQuantity(itemId, newQuantity);
-  }, [updateCartItemQuantity]);
-
-  const handleRemoveItem = useCallback((itemId) => {
-    removeFromCart(itemId);
-    setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
-    toast.success("Item removed from cart");
-  }, [removeFromCart]);
-
-  const validateCart = useCallback(() => {
-    const validationErrors = [];
-
-    if (cartItems.length === 0) {
-      validationErrors.push("Your cart is empty");
-    }
-
-    const outOfStockItems = cartItems.filter(item => item.quantity > item.stockQuantity);
-    if (outOfStockItems.length > 0) {
-      validationErrors.push(
-        `Some items exceed available stock: ${outOfStockItems.map(item => item.name).join(", ")}`
-      );
-    }
-
-    if (validationErrors.length > 0) {
-      setError(validationErrors.join(". "));
-      return false;
-    }
-
-    return true;
+  useEffect(() => {
+    setTotalAmount(calculateTotalAmount(cartItems));
   }, [cartItems]);
 
-  const handleProceedToCheckout = useCallback(() => {
-    if (validateCart()) {
-      setShowCheckoutPopup(true);
-    }
-  }, [validateCart]);
+  const handleQuantityChange = (id, value) => {
+    const updatedCart = cartItems.map(item =>
+      item.id === id ? { ...item, quantity: Math.max(1, value) } : item
+    );
+    setCartItems(updatedCart);
 
-  const processOrder = async () => {
-    try {
-      setIsProcessing(true);
-
-
-      const token = getValidToken();
-      // if (!token) {
-      //   throw new Error("Session expired. Please log in again.");
-      // }
-
-      let userId;
-      try {
-        const decoded = jwtDecode(token);
-        userId = decoded.userId;
-
-        if (!userId) {
-          throw new Error("User information not found in token");
-        }
-      } catch (decodeError) {
-        console.error("Token decoding failed:", decodeError);
-        throw new Error("Invalid session. Please log in again.");
-      }
-
-      // Update stock quantities
-      await Promise.all(
-        cartItems.map(item =>
-          API.put(`api/product/${item.id}/decrement-stock`,
-            { quantity: item.quantity },
-            // { headers: { Authorization: `Bearer ${token}` } }
-          )
-        )
-      );
-
-      // Create order
-      await API.post(
-        `/api/orders/create`,
-        {
-          userId, // Send userId in the body instead of query param
-          items: cartItems.map(item => ({
-            productId: item.id,
-            quantity: item.quantity,
-            price: item.price
-          }))
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      return true;
-    } catch (error) {
-      console.error('Order processing failed:', error);
-      throw error;
-    } finally {
-      setIsProcessing(false);
-    }
+    const cart = getCartFromLocalStorage();
+    const updatedLocalCart = cart.map(item =>
+      item.id === id ? { ...item, quantity: Math.max(1, value) } : item
+    );
+    localStorage.setItem("cart", JSON.stringify(updatedLocalCart));
   };
 
-  const handleCheckout = useCallback(async () => {
+  const handleRemoveFromCart = (id) => {
+    const updatedCart = cartItems.filter(item => item.id !== id);
+    setCartItems(updatedCart);
+    removeFromCartInLocalStorage(id);
+    toast.success("Item removed from cart");
+  };
+
+  const handleCheckout = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || isTokenExpired(token)) {
+      toast.info("Please login to proceed to checkout");
+      return navigate("/login");
+    }
+
+    if (stockErrors.length > 0) {
+      toast.error("Please fix stock issues before checkout");
+      return;
+    }
+
     try {
-      setIsProcessing(true);
-      setError(null);
-      setShowCheckoutPopup(false);
+      setLoading(true);
+      const total = calculateTotalAmount(cartItems);
+      const user = jwtDecode(token);
 
-      const token = getValidToken();
-      console.log(token)
-      // if (!token) {
-      //   navigate('/login');
-      //   return;
-      // }
-
-      const amountInCents = Math.round(totalPrice * 100);
-      const orderResponse = await API.post('/api/payment/create-order', {
-        amount: amountInCents,
-        currency: 'INR',
-        receipt: `order_${Date.now()}`
+      const res = await API.post("/api/payment/create-order", {
+        items: cartItems,
+        amount: total
       }, {
-        // headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      const { id: order_id, currency, amount } = orderResponse.data;
+      const { razorpayOrderId } = res.data;
+      if (!await loadRazorpayScript()) {
+        throw new Error("Razorpay SDK load failed");
+      }
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_KR4cQ1DoHif5Ar',
-        amount,
-        currency,
-        name: 'Ecomm',
-        description: 'Purchase',
-        order_id,
+        key: import.meta.env.VITE_RAZORPAY_KEY,
+        amount: total * 100,
+        currency: "INR",
+        name: "OmCart",
+        description: "Product Purchase",
+        order_id: razorpayOrderId,
         handler: async (response) => {
           try {
-            // Verify payment with current token
-            const currentToken = getValidToken();
-            if (!currentToken) {
-              throw new Error("Session expired. Please log in again.");
-            }
-
-            await API.post('/api/payment/verify', {
-              orderId: response.razorpay_order_id,
-              paymentId: response.razorpay_payment_id,
-              signature: response.razorpay_signature,
+            await API.post("/api/payment/verify", {
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature,
             }, {
-              headers: { Authorization: `Bearer ${currentToken}` }
+              headers: { Authorization: `Bearer ${token}` },
             });
 
-            await processOrder();
-            clearCart();
-            toast.success("Order placed successfully!")
-            navigate('/orders');
-          } catch (err) {
-            console.error('Payment verification failed:', err);
-            Swal.fire({
-              title: 'Payment Error',
-              text: err.message || 'Payment verification failed',
-              icon: 'error'
-            });
+            // Update stock for all items
+            await Promise.all(
+              cartItems.map(item =>
+                API.put(`/api/products/${item.id}/decrement-stock`, {
+                  quantity: item.quantity
+                })
+              )
+            );
+
+            localStorage.removeItem("cart");
+            toast.success("Order placed successfully!");
+            navigate("/orders");
+          } catch (error) {
+            console.error("Payment verification failed:", error);
+            toast.error("Payment verification failed");
           }
         },
         prefill: {
-          name: user?.username || '',
-          email: user?.email || '',
-          contact: user?.phone || ''
+          name: user?.name || "",
+          email: user?.email || "",
+          contact: user?.phone || "",
         },
-        theme: { color: '#3399cc' },
+        theme: { color: "#3399cc" },
         modal: {
           ondismiss: () => {
-            Swal.fire('Payment Cancelled', 'You can complete your payment later', 'info');
+            toast.info("Payment window closed");
           }
         }
       };
@@ -274,125 +177,100 @@ const Cart = () => {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      console.error('Checkout failed:', error);
-
-      let errorMessage = error.response?.data?.message || error.message || 'Checkout error. Please try again.';
-
-      // if (error.message.includes('token') || error.message.includes('log in')) {
-      //   errorMessage = "Session expired. Please log in again.";
-      //   navigate('/login');
-      // }
-
-      setError(errorMessage);
-      Swal.fire({
-        title: 'Checkout Failed',
-        text: errorMessage,
-        icon: 'error'
-      });
+      console.error("Checkout error:", error);
+      toast.error(error.response?.data?.message || "Checkout failed");
     } finally {
-      setIsProcessing(false);
+      setLoading(false);
     }
-  }, [totalPrice, user, processOrder, clearCart, navigate]);
-
-  if (!user) {
-    return <div className="auth-prompt">
-      <p>Please log in to view your cart</p>
-      <button
-        className="btn-primary"
-        onClick={() => navigate('/login')}
-      >
-        Login
-      </button>
-    </div>;
-  }
-
-  if (isLoading) {
-    return <Spinner message="Loading your cart..." />;
-  }
+  };
 
   return (
     <div className="cart-container">
       <div className="cart-header">
-        <h2>Your Shopping Cart</h2>
+        <h2 className="cart-title">Your Shopping Cart</h2>
         {cartItems.length > 0 && (
-          <span className="item-count">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</span>
+          <span className="item-count">{cartItems.length} items</span>
         )}
       </div>
 
-      {error && (
-        <div className="alert alert-error">
-          {error}
-          <button onClick={() => setError(null)}>×</button>
+      {stockChecking ? (
+        <div className="text-center py-5">
+          <Spinner animation="border" variant="primary" />
+          <p className="mt-2">Checking product availability...</p>
         </div>
-      )}
-
-      {cartItems.length === 0 ? (
+      ) : cartItems.length === 0 ? (
         <div className="empty-cart">
-          <img src="/empty-cart.svg" alt="Empty cart" />
-          <p>Your cart is empty</p>
-          <button
-            className="btn-primary"
-            onClick={() => navigate('/')}
-          >
+          <img src="/empty-cart.svg" alt="Empty cart" className="empty-cart-img" />
+          <h4>Your cart is empty</h4>
+          <p>Looks like you haven't added anything to your cart yet</p>
+          <Button variant="primary" onClick={() => navigate("/")}>
             Continue Shopping
-          </button>
+          </Button>
         </div>
       ) : (
         <>
-          <div className="cart-items-list">
+          {stockErrors.length > 0 && (
+            <Alert variant="warning" className="stock-alert">
+              <Alert.Heading>Stock Issues</Alert.Heading>
+              <p>Some items in your cart exceed available stock:</p>
+              <ul>
+                {stockErrors.map(item => (
+                  <li key={item.id}>
+                    {item.name} (Available: {item.stockQuantity})
+                  </li>
+                ))}
+              </ul>
+            </Alert>
+          )}
+
+          <div className="cart-items">
             {cartItems.map((item) => (
               <CartItem
                 key={item.id}
                 item={item}
                 onQuantityChange={handleQuantityChange}
-                onRemove={handleRemoveItem}
-                disabled={isProcessing}
+                onRemove={handleRemoveFromCart}
+                disabled={loading}
               />
             ))}
           </div>
 
           <div className="cart-summary">
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <span>₹{totalPrice.toFixed(2)}</span>
-            </div>
-            <div className="summary-row">
-              <span>Shipping</span>
-              <span>Free</span>
-            </div>
-            <div className="summary-row total">
-              <span>Total</span>
-              <span>₹{totalPrice.toFixed(2)}</span>
+            <div className="summary-details">
+              <div className="summary-row">
+                <span>Subtotal:</span>
+                <span>₹{totalAmount.toFixed(2)}</span>
+              </div>
+              <div className="summary-row">
+                <span>Shipping:</span>
+                <span>FREE</span>
+              </div>
+              <div className="summary-row total">
+                <span>Total:</span>
+                <span>₹{totalAmount.toFixed(2)}</span>
+              </div>
             </div>
 
-            <button
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handleCheckout}
+              disabled={loading || stockErrors.length > 0}
               className="checkout-btn"
-              onClick={handleProceedToCheckout}
-              disabled={isProcessing}
             >
-              {isProcessing ? (
+              {loading ? (
                 <>
-                  <span className="spinner"></span>
-                  Processing...
+                  <Spinner as="span" animation="border" size="sm" /> Processing...
                 </>
               ) : (
-                'Proceed to Checkout'
+                "Proceed to Checkout"
               )}
-            </button>
+            </Button>
           </div>
-
-          <CheckoutPopup
-            show={showCheckoutPopup}
-            handleClose={() => setShowCheckoutPopup(false)}
-            cartItems={cartItems}  // Make sure this is always an array
-            totalPrice={totalPrice}
-            handleCheckout={handleCheckout}
-            loading={isProcessing}
-          />
         </>
       )}
     </div>
   );
-};
+}
 
 export default Cart;

@@ -14,6 +14,7 @@ const Product = () => {
   const { addToCart, removeFromCart, refreshData } = useContext(AppContext);
   const { isAdmin } = useAuth();
   const [product, setProduct] = useState(null);
+  const [justAdded, setJustAdded] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false); // New state for toggling description
@@ -76,7 +77,13 @@ const Product = () => {
   const handleAddToCart = () => {
     addToCart(product);
     toast.success(`${product.name} added to cart`);
+    setJustAdded(true);
+
+    setTimeout(() => {
+      setJustAdded(false);
+    }, 1500);
   };
+
 
   const handleDescriptionGenerated = (updatedProduct) => {
     // Update the product state with the new description
@@ -130,20 +137,20 @@ const Product = () => {
         <p className="product-brand">Brand: {product.brand}</p>
 
         <div className="product-description">
-        <p>
-          <ReactMarkdown>
-            {isDescriptionExpanded || !isTruncatable ? description : truncatedDescription}
-          </ReactMarkdown>
-          {isTruncatable && (
-            <span
-              className="see-more-link"
-              onClick={toggleDescription}
-              style={{ cursor: "pointer"}}
-            >
-              {isDescriptionExpanded ? " See Less" : " See More"}
-            </span>
-          )}
-        </p>
+          <p>
+            <ReactMarkdown>
+              {isDescriptionExpanded || !isTruncatable ? description : truncatedDescription}
+            </ReactMarkdown>
+            {isTruncatable && (
+              <span
+                className="see-more-link"
+                onClick={toggleDescription}
+                style={{ cursor: "pointer" }}
+              >
+                {isDescriptionExpanded ? " See Less" : " See More"}
+              </span>
+            )}
+          </p>
           {isAdmin && (
             <GenerateDescriptionButton
               productId={id}
@@ -168,10 +175,11 @@ const Product = () => {
           <button
             className="btn-add-to-cart"
             onClick={handleAddToCart}
-            disabled={!product.productAvailable || product.stockQuantity <= 0}
+            disabled={!product.productAvailable || product.stockQuantity <= 0 || justAdded}
           >
-            {product.productAvailable ? "Add to Cart" : "Unavailable"}
+            {justAdded ? <span className="pulse">Added!</span> : "Add to Cart"}
           </button>
+
 
           {isAdmin && (
             <div className="admin-actions">
