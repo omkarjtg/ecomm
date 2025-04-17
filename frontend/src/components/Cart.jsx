@@ -140,7 +140,7 @@ function Cart() {
             // Update stock for all items
             await Promise.all(
               cartItems.map(item =>
-                API.put(`/api/products/${item.id}/decrement-stock`, {
+                API.put(`/api/product/${item.id}/decrement-stock`, {
                   quantity: item.quantity
                 })
               )

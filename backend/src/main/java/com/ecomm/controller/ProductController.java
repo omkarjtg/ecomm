@@ -158,7 +158,7 @@ public class ProductController {
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             logger.warn("Error decrementing stock for product ID {}: {}", id, e.getMessage());
-            return new ResponseEntity<>("Failed to decrement stock: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+                  return new ResponseEntity<>("Failed to decrement stock: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             logger.error("Unexpected error decrementing stock for product ID {}: {}", id, e.getMessage());
             return new ResponseEntity<>("Unexpected error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
