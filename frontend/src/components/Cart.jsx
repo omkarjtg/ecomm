@@ -278,10 +278,10 @@ const Cart = () => {
 
       let errorMessage = error.response?.data?.message || error.message || 'Checkout error. Please try again.';
 
-      if (error.message.includes('token') || error.message.includes('log in')) {
-        errorMessage = "Session expired. Please log in again.";
-        navigate('/login');
-      }
+      // if (error.message.includes('token') || error.message.includes('log in')) {
+      //   errorMessage = "Session expired. Please log in again.";
+      //   navigate('/login');
+      // }
 
       setError(errorMessage);
       Swal.fire({
