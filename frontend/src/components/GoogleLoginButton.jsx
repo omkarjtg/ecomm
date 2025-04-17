@@ -11,13 +11,13 @@ const GoogleLoginButton = () => {
     return (
         <button className="google-login-button" onClick={handleGoogleLogin}>
             <img
-                src="https://developers.google.com/identity/images/g-logo.png"
+                src="./g-logo.png"
                 alt="Google logo"
                 className="google-logo"
             />
             Continue with Google
         </button>
-    );
-};
+    );          
+};  
 
 export default GoogleLoginButton;

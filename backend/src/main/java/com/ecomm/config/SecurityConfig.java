@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
-                        .requestMatchers("/register", "/login", "/forgot-password", "/reset-password").permitAll()
+                        .requestMatchers("/register", "/login", "/forgot-password", "/reset-password", "/oauth2/**", "/auth/**", "/error").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
@@ -116,18 +116,20 @@ public class SecurityConfig {
 
                             String jwt = jwtService.generateToken(user);
 
-//                            String jwt = (String) oAuth2User.getAttributes().get("token");
 
                             Cookie cookie = new Cookie("token", jwt);
                             cookie.setHttpOnly(true);
                            cookie.setSecure(true);
                             cookie.setPath("/");
                             cookie.setMaxAge(7 * 24 * 60 * 60);         //  7 days
-                            cookie.setDomain("ecomm-eight-bice.vercel.app");
+                            String host = request.getServerName();
+                            if (host.contains("vercel.app")) {
+                                cookie.setDomain("ecomm-eight-bice.vercel.app");
+                            }
                             cookie.setAttribute("SameSite", "None"); // Required if using cross-origin cookies
                             response.addCookie(cookie);
                             response.sendRedirect("https://ecomm-eight-bice.vercel.app/oauth2/redirect"); // Redirect to home or dashboard
-//                            response.sendRedirect("http://localhost:5173/oauth2/redirect?token=" + jwt);
+//                            response.sendRedirect("http://localhost:5173/oauth2/redirect");
 
                         })
 

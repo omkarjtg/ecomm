@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import axios from "axios";
+import API from "../axios";
 
 const OAuth2RedirectHandler = () => {
     const navigate = useNavigate();
@@ -11,8 +11,8 @@ const OAuth2RedirectHandler = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const res = await axios.get(
-                    "https://ecomm-txs3.onrender.com/profile",
+                const res = await API.get(
+                    '/profile',
                     { withCredentials: true }
                 );
 

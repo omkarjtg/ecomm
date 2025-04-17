@@ -9,23 +9,19 @@ export const AuthProvider = ({ children }) => {
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-
-        if (token && token !== "undefined") {
-            // Fetch actual user profile from backend
-            API.get("/profile")
-                .then(res => {
-                    const userData = res.data;
-                    setUser(userData);
-                    setIsLoggedIn(true);
-                    setIsAdmin(userData.roles?.includes("ADMIN") || false);
-                })
-                .catch(err => {
-                    console.error("❌ Failed to load profile:", err);
-                    logout();
-                });
-        }
+        API.get("/profile")
+            .then(res => {
+                const userData = res.data;
+                setUser(userData);
+                setIsLoggedIn(true);
+                setIsAdmin(userData.roles?.includes("ADMIN") || false);
+            })
+            .catch(err => {
+                console.error("❌ Failed to load profile:", err);
+                logout();
+            });
     }, []);
+        
 
     const login = async (token) => {
         if (!token) return console.error("❌ No token received at login.");
