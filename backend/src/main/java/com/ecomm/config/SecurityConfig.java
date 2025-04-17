@@ -96,7 +96,6 @@ public class SecurityConfig {
 
                         // Preflight and error support
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/error").permitAll()
 
                         //Gemini emdpoint
                         .requestMatchers(HttpMethod.POST, "/api/gemini/**").permitAll()
