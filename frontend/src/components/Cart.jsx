@@ -17,6 +17,7 @@ function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [postPaymentLoading, setPostPaymentLoading] = useState(false); // New state for post-payment loading
   const [stockChecking, setStockChecking] = useState(false);
   const [stockErrors, setStockErrors] = useState([]);
   const navigate = useNavigate();
@@ -160,7 +161,13 @@ function Cart() {
             // Clear cart
             localStorage.removeItem("cart");
             toast.success("Order placed successfully!");
-            navigate("/orders");
+            Swal.fire("Order placed successfully");
+
+            // Show spinner while redirecting
+            setPostPaymentLoading(true);
+            setTimeout(() => {
+              navigate("/orders");
+            }, 1000); // Simulate a brief delay for spinner visibility
           } catch (err) {
             console.error("Order flow failed:", err);
             toast.error("Payment succeeded but order creation failed");
@@ -182,6 +189,15 @@ function Cart() {
     }
   };
 
+  // Render spinner during post-payment processing
+  if (postPaymentLoading) {
+    return (
+      <div className="text-center py-5">
+        <Spinner animation="border" />
+        <p>Finalizing your order...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="cart-container">
@@ -237,7 +253,6 @@ function Cart() {
             </div>
 
             <Button
-              variant="primary"
               size="lg"
               onClick={handleCheckout}
               disabled={loading || stockErrors.length > 0}
