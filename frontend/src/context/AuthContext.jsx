@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (token) => {
         if (!token) return console.error("❌ No token received at login.");
-
+        
         localStorage.setItem("token", token);
         setIsLoggedIn(true);
 

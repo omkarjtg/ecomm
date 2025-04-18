@@ -25,8 +25,8 @@ public class OrderController {
 
     @PostMapping("/create")
     public ResponseEntity<?> createOrder(
-            @RequestBody OrderRequest orderRequest,
-            @RequestHeader("Authorization") String authHeader
+            @RequestBody OrderRequest orderRequest
+//            @RequestHeader("Authorization") String authHeader         commenting this for OAuth2 cookie logins
     ) {
         try {
             Order order = orderService.createAndPlaceOrder(orderRequest.getUserId(), orderRequest);

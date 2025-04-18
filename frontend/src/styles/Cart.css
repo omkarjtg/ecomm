@@ -37,7 +37,7 @@
     text-align: center;
 }
 
-.empty-cart-img {
+.empty-cart img {
     max-width: 300px;
     margin-bottom: 1.5rem;
     opacity: 0.7;
@@ -212,7 +212,7 @@
     width: 100%;
     padding: 0.8rem;
     font-weight: 500;
-    
+
 }
 
 .stock-alert {

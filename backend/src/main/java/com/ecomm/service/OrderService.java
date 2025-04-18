@@ -37,61 +37,54 @@ public class OrderService {
     private final UserRepo userRepository;
     private final PaymentService razorPayService;
 
-    public Order createAndPlaceOrder(Long userId, OrderRequest request) throws IOException, RazorpayException {
-        // 1. Validate user and products
+    public Order createAndPlaceOrder(Long userId, OrderRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 2. Prepare order items and calculate total
         List<OrderItem> orderItems = new ArrayList<>();
-        double total = 0;
+        double calculatedTotal = 0;
 
         for (OrderItemDTO item : request.getItems()) {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found: " + item.getProductId()));
 
-            // Check stock availability
             if (product.getStockQuantity() < item.getQuantity()) {
                 throw new RuntimeException("Insufficient stock for product: " + product.getName());
             }
 
-            // Create order item
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(product);
             orderItem.setQuantity(item.getQuantity());
             orderItem.setPrice(product.getPrice());
-            total += product.getPrice() * item.getQuantity();
+            calculatedTotal += product.getPrice() * item.getQuantity();
             orderItems.add(orderItem);
         }
 
-        // 3. Create Razorpay order
-        String razorpayOrderJson = razorPayService.createOrder(total, "INR", UUID.randomUUID().toString());
-        JSONObject jsonObject = new JSONObject(razorpayOrderJson);
-        String razorpayOrderId = jsonObject.getString("id");
-        long createdAtUnix = jsonObject.getLong("created_at");
-            Instant createdAt = Instant.ofEpochSecond(createdAtUnix);
+        if (Math.abs(calculatedTotal - request.getTotalAmount()) > 1) {
+            throw new RuntimeException("Total mismatch. Expected: " + calculatedTotal);
+        }
 
-        // 4. Create and save order
         Order order = new Order();
         order.setUser(user);
-        order.setTotalAmount(total);
-        order.setPaymentStatus("CREATED");
-        order.setRazorpayOrderId(razorpayOrderId);
-        order.setOrderDate(createdAt);
+        order.setTotalAmount(calculatedTotal);
+        order.setPaymentStatus("PAID");
+        order.setRazorpayOrderId(request.getRazorpayOrderId());
+        order.setOrderDate(Instant.now());
         order.setItems(orderItems);
         orderItems.forEach(item -> item.setOrder(order));
 
-        // 5. Update product stocks
+        // Update stock
         for (OrderItemDTO item : request.getItems()) {
             Product product = productRepository.findById(item.getProductId()).get();
             product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
             productRepository.save(product);
         }
 
-        emailService.sendOrderConfirmation(user.getEmail(), user.getUsername(), order.getId(), total);
+        emailService.sendOrderConfirmation(user.getEmail(), user.getUsername(), order.getId(), calculatedTotal);
 
         return orderRepository.save(order);
     }
+
 
     public List<Order> getOrdersByUserId(Long userId) {
 

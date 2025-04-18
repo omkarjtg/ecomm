@@ -5,14 +5,12 @@ import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import CartItem from './CartItem';
 import '../styles/Cart.css';
-import { jwtDecode } from "jwt-decode";
 import API from "../axios";
 import {
   getCartFromLocalStorage,
   removeFromCartInLocalStorage,
   calculateTotalAmount,
   loadRazorpayScript,
-  isTokenExpired,
 } from "../utils/CartUtils";
 
 function Cart() {
@@ -32,38 +30,34 @@ function Cart() {
 
     try {
       setStockChecking(true);
+
       const updatedItems = await Promise.all(
-        cart.map(async (cartItem) => {
+        cart.map(async (item) => {
           try {
             const [productRes, imageRes] = await Promise.all([
-              API.get(`/api/product/${cartItem.id}`),
-              API.get(`api/product/${cartItem.id}/image`, { responseType: "blob" })
-                .catch(() => ({ data: null })) // Gracefully handle image errors
+              API.get(`/api/product/${item.id}`),
+              API.get(`/api/product/${item.id}/image`, { responseType: "blob" }).catch(() => ({ data: null }))
             ]);
-
-            const imageUrl = imageRes.data
-              ? URL.createObjectURL(imageRes.data)
-              : "/placeholder-image.png";
 
             return {
               ...productRes.data,
-              quantity: cartItem.quantity,
-              imageUrl
+              quantity: item.quantity,
+              imageUrl: imageRes.data ? URL.createObjectURL(imageRes.data) : "/placeholder-image.png"
             };
-          } catch (error) {
-            console.error("Error fetching product:", error);
+          } catch (err) {
+            console.error("Error fetching item:", err);
             return null;
           }
         })
       );
 
-      const validItems = updatedItems.filter(item => item !== null);
+      const validItems = updatedItems.filter(Boolean);
       const stockIssues = validItems.filter(item => item.quantity > item.stockQuantity);
 
-      setStockErrors(stockIssues);
       setCartItems(validItems);
-    } catch (error) {
-      console.error("Error updating cart:", error);
+      setStockErrors(stockIssues);
+    } catch (err) {
+      console.error("Cart load error:", err);
       toast.error("Failed to load cart items");
     } finally {
       setStockChecking(false);
@@ -78,66 +72,83 @@ function Cart() {
     setTotalAmount(calculateTotalAmount(cartItems));
   }, [cartItems]);
 
-  const handleQuantityChange = (id, value) => {
-    const updatedCart = cartItems.map(item =>
-      item.id === id ? { ...item, quantity: Math.max(1, value) } : item
+  const handleQuantityChange = (id, qty) => {
+    const updated = cartItems.map(item =>
+      item.id === id ? { ...item, quantity: Math.max(1, qty) } : item
     );
-    setCartItems(updatedCart);
+    setCartItems(updated);
 
-    const cart = getCartFromLocalStorage();
-    const updatedLocalCart = cart.map(item =>
-      item.id === id ? { ...item, quantity: Math.max(1, value) } : item
+    const localCart = getCartFromLocalStorage().map(item =>
+      item.id === id ? { ...item, quantity: Math.max(1, qty) } : item
     );
-    localStorage.setItem("cart", JSON.stringify(updatedLocalCart));
+    localStorage.setItem("cart", JSON.stringify(localCart));
   };
 
-  const handleRemoveFromCart = (id) => {
-    const updatedCart = cartItems.filter(item => item.id !== id);
-    setCartItems(updatedCart);
+  const handleRemove = (id) => {
+    setCartItems(prev => prev.filter(item => item.id !== id));
     removeFromCartInLocalStorage(id);
     toast.success("Item removed from cart");
   };
 
   const handleCheckout = async () => {
-
     if (stockErrors.length > 0) {
-      toast.error("Please fix stock issues before checkout");
+      toast.error("Fix stock issues before checkout");
       return;
     }
 
     try {
       setLoading(true);
       const total = calculateTotalAmount(cartItems);
-      // const user = jwtDecode(token);
-      const profileRes = await API.get("/profile");
-      const user = profileRes
+      const { data: user } = await API.get("/profile");
 
-      const res = await API.post("/api/payment/create-order", {
+      // Step 1: Create Razorpay order
+      const { data: razorpayOrder } = await API.post("/api/payment/create-order", {
         items: cartItems,
         amount: total
       });
 
-      const { razorpayOrderId } = res.data;
-      if (!await loadRazorpayScript()) {
-        throw new Error("Razorpay SDK load failed");
-      }
+      const { razorpayOrderId } = razorpayOrder;
 
+      // Step 2: Load Razorpay SDK
+      if (!await loadRazorpayScript()) throw new Error("Razorpay SDK failed to load");
+
+      // Step 3: Razorpay options
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY,
         amount: total * 100,
         currency: "INR",
         name: "OmCart",
-        description: "Product Purchase",
+        description: "Order Payment",
         order_id: razorpayOrderId,
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+          contact: user?.phone || "",
+        },
+        theme: { color: "#3399cc" },
         handler: async (response) => {
           try {
+            // Step 4: Verify payment
             await API.post("/api/payment/verify", {
               razorpayPaymentId: response.razorpay_payment_id,
               razorpayOrderId: response.razorpay_order_id,
               razorpaySignature: response.razorpay_signature,
-             });
+            });
 
-            // Update stock for all items
+            // Step 5: Create Order in DB
+            await API.post("/api/orders/create", {
+              userId: user.id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              totalAmount: total,
+              items: cartItems.map(item => ({
+                productId: item.id,
+                quantity: item.quantity,
+                price: item.price
+              }))
+            });
+
+            // Step 6: Update stock
             await Promise.all(
               cartItems.map(item =>
                 API.put(`/api/product/${item.id}/decrement-stock`, {
@@ -146,66 +157,56 @@ function Cart() {
               )
             );
 
+            // Clear cart
             localStorage.removeItem("cart");
             toast.success("Order placed successfully!");
             navigate("/orders");
-          } catch (error) {
-            console.error("Payment verification failed:", error);
-            toast.error("Payment verification failed");
+          } catch (err) {
+            console.error("Order flow failed:", err);
+            toast.error("Payment succeeded but order creation failed");
           }
         },
-        prefill: {
-          name: user?.name || "",
-          email: user?.email || "",
-          contact: user?.phone || "",
-        },
-        theme: { color: "#3399cc" },
         modal: {
-          ondismiss: () => {
-            toast.info("Payment window closed");
-          }
+          ondismiss: () => toast.info("Payment cancelled"),
         }
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch (error) {
-      console.error("Checkout error:", error);
-      toast.error(error.response?.data?.message || "Checkout failed");
+
+    } catch (err) {
+      console.error("Checkout error:", err);
+      toast.error(err.response?.data?.message || "Checkout failed");
     } finally {
       setLoading(false);
     }
   };
 
+
   return (
     <div className="cart-container">
       <div className="cart-header">
-        <h2 className="cart-title">Your Shopping Cart</h2>
-        {cartItems.length > 0 && (
-          <span className="item-count">{cartItems.length} items</span>
-        )}
+        <h2>Your Shopping Cart</h2>
+        {cartItems.length > 0 && <span>{cartItems.length} items</span>}
       </div>
 
       {stockChecking ? (
         <div className="text-center py-5">
-          <Spinner animation="border" variant="primary" />
-          <p className="mt-2">Checking product availability...</p>
+          <Spinner animation="border" />
+          <p>Checking availability...</p>
         </div>
       ) : cartItems.length === 0 ? (
         <div className="empty-cart">
-          <img src="/empty-cart.svg" alt="Empty cart" className="empty-cart-img" />
+          <img src="/empty-cart.svg" alt="Empty cart" />
           <h4>Your cart is empty</h4>
-          <p>Looks like you haven't added anything to your cart yet</p>
-          <Button variant="primary" onClick={() => navigate("/")}>
-            Continue Shopping
-          </Button>
+          <p>Looks like you haven't added anything yet</p>
+          <Button onClick={() => navigate("/")}>Continue Shopping</Button>
         </div>
       ) : (
         <>
           {stockErrors.length > 0 && (
-            <Alert variant="warning" className="stock-alert">
+            <Alert variant="warning">
               <Alert.Heading>Stock Issues</Alert.Heading>
-              <p>Some items in your cart exceed available stock:</p>
               <ul>
                 {stockErrors.map(item => (
                   <li key={item.id}>
@@ -217,12 +218,12 @@ function Cart() {
           )}
 
           <div className="cart-items">
-            {cartItems.map((item) => (
+            {cartItems.map(item => (
               <CartItem
                 key={item.id}
                 item={item}
                 onQuantityChange={handleQuantityChange}
-                onRemove={handleRemoveFromCart}
+                onRemove={handleRemove}
                 disabled={loading}
               />
             ))}
@@ -230,18 +231,9 @@ function Cart() {
 
           <div className="cart-summary">
             <div className="summary-details">
-              <div className="summary-row">
-                <span>Subtotal:</span>
-                <span>₹{totalAmount.toFixed(2)}</span>
-              </div>
-              <div className="summary-row">
-                <span>Shipping:</span>
-                <span>FREE</span>
-              </div>
-              <div className="summary-row total">
-                <span>Total:</span>
-                <span>₹{totalAmount.toFixed(2)}</span>
-              </div>
+              <div className="summary-row"><span>Subtotal:</span><span>₹{totalAmount.toFixed(2)}</span></div>
+              <div className="summary-row"><span>Shipping:</span><span>FREE</span></div>
+              <div className="summary-row total"><span>Total:</span><span>₹{totalAmount.toFixed(2)}</span></div>
             </div>
 
             <Button
@@ -251,13 +243,7 @@ function Cart() {
               disabled={loading || stockErrors.length > 0}
               className="checkout-btn"
             >
-              {loading ? (
-                <>
-                  <Spinner as="span" animation="border" size="sm" /> Processing...
-                </>
-              ) : (
-                "Proceed to Checkout"
-              )}
+              {loading ? <><Spinner as="span" animation="border" size="sm" /> Processing...</> : "Proceed to Checkout"}
             </Button>
           </div>
         </>

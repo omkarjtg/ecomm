@@ -1,30 +1,30 @@
 import "./App.css";
-import React, { useState, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+
 import Home from "./components/Home";
-import { useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Cart from "./components/Cart";
 import AddProduct from "./components/AddProduct";
 import OAuth2RedirectHandler from "./components/OAuth2RedirectHandler";
 import Product from "./components/Product";
-import { toast, ToastContainer } from "react-toastify";
-import { Routes, Route, Navigate } from "react-router-dom";
-import API from './axios';
 import UpdateProduct from "./components/UpdateProduct";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import LoginForm from "./components/Login";
 import ForgotPasswordForm from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import RegisterForm from "./components/SignUp";
 import Profile from "./components/Profile";
 import Forbidden from "./components/Forbidden";
-import { useAuth } from "./context/AuthContext";
+import { Spinner } from "react-bootstrap";
 import NotFound from "./components/NotFound";
 import Orders from "./components/Orders";
+import { useAuth } from "./context/AuthContext";
+import AppContext from "./context/Context";
 
-
-// ProtectedRoute component
+// ProtectedRoute component 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { isLoggedIn, hasRole, user } = useAuth();
   const [checked, setChecked] = useState(false);
@@ -32,8 +32,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const [shouldShowForbidden, setShouldShowForbidden] = useState(false);
 
   useEffect(() => {
-    if (user === null) return; // wait for user data to load
-
+    if (user === null) return;
     setChecked(true);
 
     if (!isLoggedIn) {
@@ -49,19 +48,15 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     }
   }, [isLoggedIn, requireAdmin, hasRole, user]);
 
-  if (!checked) return null; // or a loader
-
+  if (!checked) return <div className="text-center mt-5"><Spinner /></div>;
   if (shouldRedirect) return <Navigate to="/login" replace />;
   if (shouldShowForbidden) return <Navigate to="/forbidden" replace />;
 
   return children;
 };
 
-
-
-
 function App() {
-  const [cart, setCart] = useState([]);
+  const { cart, addToCart } = useContext(AppContext);
   const [selectedCategory, setSelectedCategory] = useState("");
   const navigate = useNavigate();
 
@@ -70,41 +65,14 @@ function App() {
     navigate('/');
   };
 
-  const addToCart = (product) => {
-    const existingProduct = cart.find((item) => item.id === product.id);
-    if (existingProduct) {
-      setCart(
-        cart.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      );
-    } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
-    }
-  };
-
   return (
     <>
-      <Navbar
-        onSelectCategory={handleCategorySelect}
-      // selectedCategory={selectedCategory}
-      />
-      <ToastContainer
-        position="top-center"
-        autoClose={1500} />
+      <Navbar onSelectCategory={handleCategorySelect} />
+      <ToastContainer position="top-center" autoClose={1500} />
+
       <Routes>
         {/* Public Routes */}
-        <Route
-          path="/"
-          element={
-            <Home
-              addToCart={addToCart}
-              selectedCategory={selectedCategory}
-            />
-          }
-        />
+        <Route path="/" element={<Home addToCart={addToCart} selectedCategory={selectedCategory} />} />
         <Route path="/forgot-password" element={<ForgotPasswordForm />} />
         <Route path="/product/:id" element={<Product />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -112,45 +80,17 @@ function App() {
         <Route path="/signup" element={<RegisterForm />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/forbidden" element={<Forbidden />} />
-        <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} /> 
+        <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
 
-        {/* Protected Routes (require login) */}
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute>
-              <Cart />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
+        {/* Protected Routes */}
+        <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
         {/* Admin-only Routes */}
-        <Route
-          path="/add_product"
-          element={
-            <ProtectedRoute requireAdmin={true}>
-              <AddProduct />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/product/update/:id"
-          element={
-            <ProtectedRoute requireAdmin={true}>
-              <UpdateProduct />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/add_product" element={<ProtectedRoute requireAdmin={true}><AddProduct /></ProtectedRoute>} />
+        <Route path="/product/update/:id" element={<ProtectedRoute requireAdmin={true}><UpdateProduct /></ProtectedRoute>} />
 
-        {/* Catch-all route */}
+        {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
