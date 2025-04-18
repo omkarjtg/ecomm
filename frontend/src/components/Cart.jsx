@@ -17,7 +17,7 @@ function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [postPaymentLoading, setPostPaymentLoading] = useState(false); // New state for post-payment loading
+  const [postPaymentLoading, setPostPaymentLoading] = useState(false);
   const [stockChecking, setStockChecking] = useState(false);
   const [stockErrors, setStockErrors] = useState([]);
   const navigate = useNavigate();
@@ -161,13 +161,33 @@ function Cart() {
             // Clear cart
             localStorage.removeItem("cart");
             toast.success("Order placed successfully!");
-            Swal.fire("Order placed successfully");
+
+            // Enhanced SweetAlert2
+            await Swal.fire({
+              icon: "success",
+              title: "Order Confirmed!",
+              html: `
+                <p>Your order has been placed successfully.</p>
+                <p><strong>Total: ₹${total.toFixed(2)}</strong></p>
+                <p>You can track your order in the Orders section.</p>
+              `,
+              confirmButtonText: "View Orders",
+              customClass: {
+                confirmButton: 'swal2-confirm btn btn-primary',
+                popup: 'swal2-popup animated bounceIn'
+              },
+              buttonsStyling: false, // Use custom styles
+              timer: 5000, // Auto-close after 5 seconds
+              timerProgressBar: true, // Show progress bar for timer
+              showCancelButton: false,
+              allowOutsideClick: false // Prevent closing by clicking outside
+            });
 
             // Show spinner while redirecting
             setPostPaymentLoading(true);
             setTimeout(() => {
               navigate("/orders");
-            }, 1000); // Simulate a brief delay for spinner visibility
+            }, 1000);
           } catch (err) {
             console.error("Order flow failed:", err);
             toast.error("Payment succeeded but order creation failed");
@@ -189,7 +209,6 @@ function Cart() {
     }
   };
 
-  // Render spinner during post-payment processing
   if (postPaymentLoading) {
     return (
       <div className="text-center py-5">
